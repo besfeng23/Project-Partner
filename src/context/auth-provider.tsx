@@ -20,16 +20,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onIdTokenChanged(auth, async (user) => {
-      setUser(user);
       if (user) {
+        setUser(user);
         const token = await user.getIdToken();
         setIdToken(token);
-        // Set a cookie for server-side rendering
-        document.cookie = `idToken=${token}; path=/; max-age=3600; samesite=lax`;
       } else {
+        setUser(null);
         setIdToken(null);
-        // Clear the cookie on sign-out
-        document.cookie = 'idToken=; path=/; max-age=-1;';
       }
       setLoading(false);
     });
