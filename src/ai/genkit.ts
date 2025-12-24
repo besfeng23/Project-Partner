@@ -1,13 +1,13 @@
 'use server';
 
 import {genkit} from 'genkit';
-import {openai} from 'genkitx-openai';
+import {googleAI} from '@genkit-ai/google-genai';
 
 export const ai = genkit({
   plugins: [
-    openai({
-      apiKey: process.env.OPENAI_API_KEY,
+    googleAI({
+      apiKey: process.env.GEMINI_API_KEY,
     }),
   ],
-  model: 'openai/gpt-4-turbo',
+  model: 'googleai/gemini-1.5-flash-latest',
 });
