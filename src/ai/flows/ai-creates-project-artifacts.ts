@@ -6,9 +6,9 @@
 'use server';
 
 import {runAiCreateProjectArtifactsFlow} from '@/ai/flows';
-import {
-  type AICreateProjectArtifactsInput,
-  type AICreateProjectArtifactsOutput,
+import type {
+  AICreateProjectArtifactsInput,
+  AICreateProjectArtifactsOutput,
 } from '@/ai/schemas';
 
 export async function aiCreateProjectArtifacts(

@@ -6,9 +6,9 @@
 'use server';
 
 import {runAiCreateTasksDecisionsConstraintsFlow} from '@/ai/flows';
-import {
-  type AICreateTasksDecisionsConstraintsInput,
-  type AICreateTasksDecisionsConstraintsOutput,
+import type {
+  AICreateTasksDecisionsConstraintsInput,
+  AICreateTasksDecisionsConstraintsOutput,
 } from '@/ai/schemas';
 
 export async function aiCreateTasksDecisionsConstraints(

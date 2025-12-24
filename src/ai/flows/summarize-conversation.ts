@@ -6,9 +6,9 @@
 'use server';
 
 import {runSummarizeConversationFlow} from '@/ai/flows';
-import {
-  type SummarizeConversationInput,
-  type SummarizeConversationOutput,
+import type {
+  SummarizeConversationInput,
+  SummarizeConversationOutput,
 } from '@/ai/schemas';
 
 export async function summarizeConversation(

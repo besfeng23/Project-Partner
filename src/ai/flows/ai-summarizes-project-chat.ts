@@ -6,9 +6,9 @@
 'use server';
 
 import {runAiSummarizesProjectChatFlow} from '@/ai/flows';
-import {
-  type AISummarizesProjectChatInput,
-  type AISummarizesProjectChatOutput,
+import type {
+  AISummarizesProjectChatInput,
+  AISummarizesProjectChatOutput,
 } from '@/ai/schemas';
 
 export async function aiSummarizesProjectChat(

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { suggestNextAction } from '@/ai/flows/ai-suggests-next-action';
-import { type SuggestNextActionOutput } from '@/ai/schemas';
+import type { SuggestNextActionOutput } from '@/ai/schemas';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 

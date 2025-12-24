@@ -6,9 +6,9 @@
 'use server';
 
 import {runSuggestNextActionFlow} from '@/ai/flows';
-import {
-  type SuggestNextActionInput,
-  type SuggestNextActionOutput,
+import type {
+  SuggestNextActionInput,
+  SuggestNextActionOutput,
 } from '@/ai/schemas';
 
 export async function suggestNextAction(
