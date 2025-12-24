@@ -20,7 +20,7 @@ export default function DashboardPage() {
           Here's your project's status at a glance.
         </p>
       </div>
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <RecommendedActionCard />
         <TaskSummaryCard tasks={tasks} />
         <div className="col-span-1 flex flex-col gap-6">

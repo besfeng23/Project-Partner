@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { mockProjects } from "@/lib/mock-data";
-import { PlusCircle } from "lucide-react";
+import { ArrowRight, PlusCircle, CheckCircle, Clock } from "lucide-react";
 import Link from "next/link";
+import { Progress } from "@/components/ui/progress";
 
 export default function ProjectsPage() {
   return (
@@ -20,23 +21,33 @@ export default function ProjectsPage() {
         </Button>
       </div>
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {mockProjects.map((project) => (
-          <Link href={`/projects/${project.id}/tasks`} key={project.id}>
-            <Card className="hover:border-primary transition-colors h-full flex flex-col">
-              <CardHeader>
-                <CardTitle className="font-headline">{project.name}</CardTitle>
-                <CardDescription>Status: {project.status}</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow">
-                <p className="text-sm text-muted-foreground">
-                  Last updated: {project.updatedAt.toLocaleDateString()}
-                </p>
-              </CardContent>
-              <CardFooter>
-                 <Button variant="secondary" className="w-full">View Project</Button>
-              </CardFooter>
-            </Card>
-          </Link>
+        {mockProjects.map((project, index) => (
+          <Card key={project.id} className="hover:border-primary/80 transition-colors flex flex-col group">
+            <CardHeader>
+              <CardTitle className="font-headline">{project.name}</CardTitle>
+              <CardDescription className="flex items-center gap-2">
+                {project.status === 'Active' ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Clock className="h-4 w-4 text-amber-500" />}
+                {project.status}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex-grow space-y-4">
+              <div>
+                <p className="text-sm font-medium mb-1">Progress</p>
+                <Progress value={(index + 1) * 35} className="h-2" />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Last updated: {project.updatedAt.toLocaleDateString()}
+              </p>
+            </CardContent>
+            <CardFooter>
+               <Button variant="outline" className="w-full" asChild>
+                 <Link href={`/projects/${project.id}/tasks`}>
+                    View Project
+                    <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
+                 </Link>
+               </Button>
+            </CardFooter>
+          </Card>
         ))}
       </div>
     </div>

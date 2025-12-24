@@ -5,6 +5,7 @@ import { usePathname, useParams } from "next/navigation";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { mockProjects } from "@/lib/mock-data";
 import { ReactNode } from "react";
+import { Card } from "@/components/ui/card";
 
 const projectTabs = [
   { name: "Overview", href: "" },
@@ -38,9 +39,9 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
           ))}
         </TabsList>
       </Tabs>
-      <div>
+      <Card>
         {children}
-      </div>
+      </Card>
     </div>
   );
 }
