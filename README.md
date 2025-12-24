@@ -89,3 +89,23 @@ This application is optimized for deployment on [Vercel](https://vercel.com).
 3.  Push to your main branch to trigger a deployment.
 
 The application is also compatible with Firebase Hosting.
+
+### Vercel Environment Variables Setup
+
+When deploying to Vercel, you **must** set all required Firebase environment variables:
+
+| Variable | Required |
+|----------|----------|
+| `NEXT_PUBLIC_FIREBASE_API_KEY` | ✅ |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | ✅ |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | ✅ |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | ✅ |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | ✅ |
+| `NEXT_PUBLIC_FIREBASE_APP_ID` | ✅ |
+| `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` | Optional |
+| `FIREBASE_SERVICE_ACCOUNT_KEY` | ✅ (server) |
+| `GOOGLE_GENAI_API_KEY` | ✅ (AI features) |
+
+**Important:**
+- Set variables for **both Production and Preview** environments in Vercel → Project → Settings → Environment Variables.
+- After adding or changing environment variables, you must **redeploy** for changes to take effect.
