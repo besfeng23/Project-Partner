@@ -14,36 +14,43 @@ import {
 } from '@/ai/base';
 import type {
   AICreateProjectArtifactsInput,
+  AICreateProjectArtifactsOutput,
   AICreateTasksDecisionsConstraintsInput,
+  AICreateTasksDecisionsConstraintsOutput,
   AISummarizesProjectChatInput,
+  AISummarizesProjectChatOutput,
   SuggestNextActionInput,
+  SuggestNextActionOutput,
   SummarizeConversationInput,
+  SummarizeConversationOutput,
 } from './schemas';
 
 export async function runAiCreateProjectArtifactsFlow(
   input: AICreateProjectArtifactsInput
-) {
+): Promise<AICreateProjectArtifactsOutput> {
   return await aiCreateProjectArtifactsFlow(input);
 }
 
 export async function runAiCreateTasksDecisionsConstraintsFlow(
   input: AICreateTasksDecisionsConstraintsInput
-) {
+): Promise<AICreateTasksDecisionsConstraintsOutput> {
   return await aiCreateTasksDecisionsConstraintsFlow(input);
 }
 
-export async function runSuggestNextActionFlow(input: SuggestNextActionInput) {
+export async function runSuggestNextActionFlow(
+  input: SuggestNextActionInput
+): Promise<SuggestNextActionOutput> {
   return await suggestNextActionFlow(input);
 }
 
 export async function runAiSummarizesProjectChatFlow(
   input: AISummarizesProjectChatInput
-) {
+): Promise<AISummarizesProjectChatOutput> {
   return await aiSummarizesProjectChatFlow(input);
 }
 
 export async function runSummarizeConversationFlow(
   input: SummarizeConversationInput
-) {
+): Promise<SummarizeConversationOutput> {
   return await summarizeConversationFlow(input);
 }
