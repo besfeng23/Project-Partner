@@ -1,0 +1,89 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to get user's role in an organization
+    function getUserRole(orgId) {
+      return get(/databases/$(database)/documents/orgs/$(orgId)/users/$(request.auth.uid)).data.role;
+    }
+    
+    // Org data is public for simplicity, but can be restricted
+    match /orgs/{orgId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && getUserRole(orgId) == 'admin';
+      
+      // Users collection
+      match /users/{uid} {
+        allow read: if isAuthenticated();
+        // Admins can manage users, users can see their own data.
+        allow write: if isAuthenticated() && (getUserRole(orgId) == 'admin' || request.auth.uid == uid);
+      }
+      
+      // Projects and subcollections
+      match /projects/{projectId} {
+        // Must be a member of the org to read
+        allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+        
+        // Only admins and members can write
+        allow write: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+        
+        // Tasks
+        match /tasks/{taskId} {
+          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+          allow create, update: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+          allow delete: if isAuthenticated() && getUserRole(orgId) == 'admin';
+        }
+
+        // Decisions (Append-only)
+        match /decisions/{decisionId} {
+          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+          allow create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+          allow update, delete: if false; // Never allow updates or deletes
+        }
+        
+        // Constraints
+        match /constraints/{constraintId} {
+          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+          allow create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+          allow delete, update: if isAuthenticated() && getUserRole(orgId) == 'admin';
+        }
+        
+        // Artifacts
+        match /artifacts/{artifactId} {
+           allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+           allow create, update: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+           allow delete: if isAuthenticated() && getUserRole(orgId) == 'admin';
+        }
+
+        // Chat Threads & Messages
+        match /chatThreads/{threadId} {
+          allow read, write: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+          match /messages/{messageId} {
+            allow read, create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+            allow update, delete: if isAuthenticated() && getUserRole(orgId) == 'admin';
+          }
+        }
+        
+        // Memory Summaries
+        match /memorySummaries/{summaryId} {
+          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+          allow create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+          allow update, delete: if false; // Append-only nature
+        }
+        
+        // Audit (Create-only)
+        match /audit/{eventId} {
+          allow read: if isAuthenticated() && getUserRole(orgId) == 'admin';
+          allow create: if isAuthenticated(); // Allow system/members to write audit logs
+          allow update, delete: if false; // Never allow updates or deletes
+        }
+      }
+    }
+  }
+}
