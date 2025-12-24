@@ -56,6 +56,7 @@ function loadServiceAccount() {
 }
 
 let _app: admin.app.App | null = null;
+let _initError: string | null = null;
 
 /**
  * Lazily initializes and returns the Firebase Admin App instance.
@@ -70,11 +71,18 @@ function getAdminApp(): admin.app.App | null {
   if (_app) {
     return _app;
   }
+  
+  if (_initError) {
+    // Avoid re-attempting initialization if it has already failed.
+    console.error('Firebase Admin initialization previously failed:', _initError);
+    return null;
+  }
 
   const cred = loadServiceAccount();
   if (!cred.ok) {
     // Log the error during runtime, but don't throw during build.
-    console.error('Failed to load Firebase service account:', cred.error);
+    _initError = cred.error;
+    console.error('Failed to load Firebase service account:', _initError);
     return null;
   }
 
@@ -84,7 +92,8 @@ function getAdminApp(): admin.app.App | null {
     });
     return _app;
   } catch (e: any) {
-    console.error('Failed to initialize Firebase Admin app:', e.message);
+    _initError = e.message;
+    console.error('Failed to initialize Firebase Admin app:', _initError);
     return null;
   }
 }
