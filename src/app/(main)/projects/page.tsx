@@ -7,14 +7,15 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { db } from "@/lib/firebase";
+import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-provider";
 import type { Project } from "@/lib/types";
 import { ArrowRight, PlusCircle, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { AppError } from "@/components/app-error";
 
 function NewProjectDialog({ orgId }: { orgId: string }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -87,9 +88,18 @@ export default function ProjectsPage() {
   const { user } = useAuth();
   // For now, we use a mock orgId. This would come from user's session/claims in a real app.
   const orgId = "mock-org-id";
-
-  const projectsRef = collection(db, `orgs/${orgId}/projects`);
+  const firebaseError = getFirebaseClientError();
+  const db = getFirebaseDb();
+  const projectsRef = db ? collection(db, `orgs/${orgId}/projects`) : null;
   const [snapshot, loading, error] = useCollection(projectsRef);
+
+  if (firebaseError) {
+    return <AppError title="Could not load projects" message={firebaseError.message} />;
+  }
+
+  if (!db) {
+    return <AppError title="Could not load projects" message={'Firebase client is unavailable.'} />;
+  }
 
   const projects = snapshot?.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)) || [];
 
@@ -106,7 +116,7 @@ export default function ProjectsPage() {
       </div>
 
       {loading && <p>Loading projects...</p>}
-      {error && <p className="text-destructive">Error loading projects: {error.message}</p>}
+      {error && <AppError title="Error loading projects" message={error.message} />}
       
       {!loading && projects.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">

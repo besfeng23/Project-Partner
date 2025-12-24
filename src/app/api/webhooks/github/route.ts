@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase-admin';
+import { getAdminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import crypto from 'crypto';
 
 export async function POST(req: NextRequest) {
+    const adminDb = getAdminDb();
+    if (!adminDb) {
+        return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
+    }
+
     const { searchParams } = new URL(req.url);
     const orgId = searchParams.get('orgId');
     const projectId = searchParams.get('projectId');

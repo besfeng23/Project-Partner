@@ -12,12 +12,19 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/auth-provider";
 import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { AppError } from "@/components/app-error";
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [vercelProjectId, setVercelProjectId] = useState('');
+  const firebaseError = getFirebaseClientError();
+  const db = getFirebaseDb();
+
+  if (firebaseError || !db) {
+    return <AppError title="Unable to load settings" message={firebaseError?.message ?? 'Firebase client is unavailable.'} />;
+  }
   
   // Hardcoded for now
   const orgId = "mock-org-id";

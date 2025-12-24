@@ -2,13 +2,14 @@
 
 import { useCollection } from "react-firebase-hooks/firestore";
 import { collection, query, orderBy, doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
 import type { Task, TaskStatus } from "@/lib/types";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
 import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { useToast } from "@/hooks/use-toast";
+import { AppError } from "./app-error";
 
 const KanbanCard = ({ task, index }: { task: Task, index: number }) => (
     <Draggable draggableId={task.id} index={index}>
@@ -63,10 +64,21 @@ const KanbanColumn = ({ columnId, title, tasks }: { columnId: TaskStatus, title:
 );
 
 export function KanbanBoard({ orgId, projectId }: { orgId: string, projectId: string }) {
-    const tasksRef = collection(db, `orgs/${orgId}/projects/${projectId}/tasks`);
-    const q = query(tasksRef, orderBy("updatedAt", "desc"));
-    const [snapshot, loading, error] = useCollection(q);
+    const firebaseError = getFirebaseClientError();
+    const db = getFirebaseDb();
     const { toast } = useToast();
+
+    const tasksRef = db ? collection(db, `orgs/${orgId}/projects/${projectId}/tasks`) : null;
+    const q = tasksRef ? query(tasksRef, orderBy("updatedAt", "desc")) : null;
+    const [snapshot, loading, error] = useCollection(q);
+
+    if (firebaseError) {
+        return <AppError title="Could not load tasks" message={firebaseError.message} />;
+    }
+
+    if (!db) {
+        return <AppError title="Could not load tasks" message={'Firebase client is unavailable.'} />;
+    }
 
     const tasks = snapshot?.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task)) || [];
 
@@ -114,7 +126,7 @@ export function KanbanBoard({ orgId, projectId }: { orgId: string, projectId: st
     };
     
     if (loading) return <p>Loading tasks...</p>;
-    if (error) return <p className="text-destructive">Error loading tasks: {error.message}</p>;
+    if (error) return <AppError title="Error loading tasks" message={error.message} />;
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>

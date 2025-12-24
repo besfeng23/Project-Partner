@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
@@ -6,9 +6,10 @@ import { useDocument } from "react-firebase-hooks/firestore";
 import { doc } from "firebase/firestore";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
-import { db } from "@/lib/firebase";
+import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
 import type { Project } from "@/lib/types";
 import type { ReactNode } from "react";
+import { AppError } from "@/components/app-error";
 
 const projectTabs = [
   { name: "Overview", href: "" },
@@ -24,9 +25,19 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   const projectId = params.projectId as string;
   // In a real app, orgId would come from user's context
   const orgId = "mock-org-id";
+  const firebaseError = getFirebaseClientError();
+  const db = getFirebaseDb();
 
-  const projectRef = doc(db, `orgs/${orgId}/projects/${projectId}`);
+  const projectRef = db ? doc(db, `orgs/${orgId}/projects/${projectId}`) : null;
   const [snapshot, loading, error] = useDocument(projectRef);
+
+  if (firebaseError) {
+    return <AppError title="Could not load project" message={firebaseError.message} />;
+  }
+
+  if (!db) {
+    return <AppError title="Could not load project" message={'Firebase client is unavailable.'} />;
+  }
   
   const project = snapshot?.exists() ? { id: snapshot.id, ...snapshot.data() } as Project : null;
 
@@ -39,7 +50,7 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   }
 
   if (error) {
-    return <p className="text-destructive">Error: {error.message}</p>
+    return <AppError title="Error loading project" message={error.message} />
   }
   
   if (!project) {

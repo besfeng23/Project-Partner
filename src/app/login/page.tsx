@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { getFirebaseAuth, getFirebaseClientError } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-provider';
 import { useEffect } from 'react';
 import { ProjectPartnerIcon } from '@/components/icons';
+import { AppError } from '@/components/app-error';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -21,6 +22,8 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const { user, loading } = useAuth();
+  const firebaseError = getFirebaseClientError();
+  const auth = getFirebaseAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -28,7 +31,20 @@ export default function LoginPage() {
     }
   }, [user, loading, router]);
 
+  if (firebaseError || !auth) {
+    return (
+      <AppError
+        title="Unable to connect to Firebase"
+        message={firebaseError?.message ?? 'Firebase Auth is not available.'}
+      />
+    );
+  }
+
   const handleAuth = async (type: 'login' | 'signup') => {
+    if (!auth) {
+      toast({ variant: 'destructive', title: 'Authentication unavailable' });
+      return;
+    }
     setIsLoading(true);
     try {
       if (type === 'login') {

@@ -8,8 +8,9 @@ import type { ChatMessage } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-provider";
-import { db } from "@/lib/firebase";
+import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { AppError } from "./app-error";
 
 const initialMessages: ChatMessage[] = [
     { id: '1', role: 'assistant', content: 'Hello! How can I help you with the project today?', createdAt: new Date(), writtenToMemory: true },
@@ -20,9 +21,11 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { user } = useAuth();
+    const firebaseError = getFirebaseClientError();
+    const db = getFirebaseDb();
 
     useEffect(() => {
-        if (!projectId || !orgId || !threadId) return;
+        if (!projectId || !orgId || !threadId || !db) return;
 
         const messagesRef = collection(db, `orgs/${orgId}/projects/${projectId}/chatThreads/${threadId}/messages`);
         const q = query(messagesRef, orderBy("createdAt", "asc"));
@@ -56,7 +59,15 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
         });
 
         return () => unsubscribe();
-    }, [projectId, orgId, threadId]);
+    }, [projectId, orgId, threadId, db, messages.length]);
+
+    if (firebaseError) {
+        return <AppError title="Chat unavailable" message={firebaseError.message} />;
+    }
+
+    if (!db) {
+        return <AppError title="Chat unavailable" message={'Firebase client is unavailable.'} />;
+    }
 
     const getInitials = (email?: string | null) => {
         if (!email) return 'U';
