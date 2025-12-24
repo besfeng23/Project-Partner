@@ -52,6 +52,23 @@ Required variables:
 - `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (optional)
 - `FIREBASE_SERVICE_ACCOUNT_KEY` (JSON string for the Admin SDK; ensure newlines in `private_key` are encoded as `\n`)
 
+### Vercel Env Setup (Production + Preview)
+
+If you deploy on Vercel, set the **client Firebase env vars** in **Vercel → Project → Settings → Environment Variables** for **Production + Preview**:
+
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+
+Optional:
+
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID`
+
+After changing env vars in Vercel, a **redeploy is required** for the new values to take effect.
+
 ### 3. Install Dependencies
 
 ```bash
