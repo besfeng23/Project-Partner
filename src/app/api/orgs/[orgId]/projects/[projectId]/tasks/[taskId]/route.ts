@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb, verifyIdToken } from '@/lib/firebase-admin';
+import { adminDb, verifyIdToken } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function PATCH(req: NextRequest, { params }: { params: { orgId: string, projectId: string, taskId: string } }) {
     const { orgId, projectId, taskId } = params;
-    const db = getAdminDb();
+    
+    if (!adminDb) {
+        return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
+    }
     
     const authorization = req.headers.get('Authorization');
     const idToken = authorization?.split('Bearer ')[1];
 
-    if (!db || !idToken) {
-        return NextResponse.json({ error: 'Firebase Admin not configured or user not authenticated' }, { status: 500 });
+    if (!idToken) {
+        return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
     }
     
     const decodedToken = await verifyIdToken(idToken);
@@ -27,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { orgId: str
         delete updates.createdByUid;
         delete updates.source;
 
-        const taskRef = db.doc(`orgs/${orgId}/projects/${projectId}/tasks/${taskId}`);
+        const taskRef = adminDb.doc(`orgs/${orgId}/projects/${projectId}/tasks/${taskId}`);
         
         const validUpdates = {
             ...updates,

@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb, getAdminAuth, verifyIdToken } from '@/lib/firebase-admin';
+import { adminDb, verifyIdToken } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(req: NextRequest, { params }: { params: { orgId: string, projectId: string } }) {
     const { orgId, projectId } = params;
-    const db = getAdminDb();
+
+    if (!adminDb) {
+        return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
+    }
     
     const authorization = req.headers.get('Authorization');
     const idToken = authorization?.split('Bearer ')[1];
 
-    if (!db || !idToken) {
-        return NextResponse.json({ error: 'Firebase Admin not configured or user not authenticated' }, { status: 500 });
+    if (!idToken) {
+        return NextResponse.json({ error: 'User not authenticated' }, { status: 401 });
     }
     
     const decodedToken = await verifyIdToken(idToken);
@@ -25,9 +28,9 @@ export async function POST(req: NextRequest, { params }: { params: { orgId: stri
             return NextResponse.json({ error: 'Missing required fields: title, priority, status' }, { status: 400 });
         }
         
-        // TODO: Check user role (must be admin or member)
+        // TODO: Check user role (must be admin or member based on security rules)
 
-        const tasksRef = db.collection(`orgs/${orgId}/projects/${projectId}/tasks`);
+        const tasksRef = adminDb.collection(`orgs/${orgId}/projects/${projectId}/tasks`);
         const newTask = {
             title,
             description: description || '',

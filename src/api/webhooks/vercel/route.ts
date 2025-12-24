@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb } from '@/lib/firebase-admin';
+import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(req: NextRequest) {
-    const adminDb = getAdminDb();
     if (!adminDb) {
         return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
     }
