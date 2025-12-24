@@ -15,7 +15,7 @@ import {
 } from './schemas';
 
 // ######################################################################
-// ai-creates-project-artifacts.ts
+// Prompt Definitions
 // ######################################################################
 
 const createProjectArtifactsPrompt = ai.definePrompt({
@@ -45,22 +45,6 @@ Based on the project context and user message, please provide the following STRI
 Ensure the output is valid JSON and adheres to the schema. Do not include any explanation or preamble text. The output should ONLY be the JSON. Double-check the formatting and that there are no missing fields.
 `,
 });
-
-export const aiCreateProjectArtifactsFlow = ai.defineFlow(
-  {
-    name: 'aiCreateProjectArtifactsFlow',
-    inputSchema: AICreateProjectArtifactsInputSchema,
-    outputSchema: AICreateProjectArtifactsOutputSchema,
-  },
-  async input => {
-    const {output} = await createProjectArtifactsPrompt(input);
-    return output!;
-  }
-);
-
-// ######################################################################
-// ai-creates-tasks-decisions-constraints.ts
-// ######################################################################
 
 const createTasksDecisionsConstraintsPrompt = ai.definePrompt({
   name: 'aiCreateTasksDecisionsConstraintsPrompt',
@@ -92,22 +76,6 @@ Ensure the output is valid JSON and adheres to the schema.  Do not include any e
 `,
 });
 
-export const aiCreateTasksDecisionsConstraintsFlow = ai.defineFlow(
-  {
-    name: 'aiCreateTasksDecisionsConstraintsFlow',
-    inputSchema: AICreateTasksDecisionsConstraintsInputSchema,
-    outputSchema: AICreateTasksDecisionsConstraintsOutputSchema,
-  },
-  async input => {
-    const {output} = await createTasksDecisionsConstraintsPrompt(input);
-    return output!;
-  }
-);
-
-// ######################################################################
-// ai-suggests-next-action.ts
-// ######################################################################
-
 const suggestNextActionPrompt = ai.definePrompt({
   name: 'suggestNextActionPrompt',
   input: {schema: SuggestNextActionInputSchema},
@@ -138,6 +106,64 @@ Ensure the response is in valid JSON format.
 `,
 });
 
+const summarizeProjectChatPrompt = ai.definePrompt({
+  name: 'aiSummarizesProjectChatPrompt',
+  input: {schema: AISummarizesProjectChatInputSchema},
+  output: {schema: AISummarizesProjectChatOutputSchema},
+  prompt: `You are an AI assistant summarizing a project chat thread to create a memory summary.
+
+  Summarize the following messages from the chat thread into a concise summary:
+  
+  {{#each messages}}
+  Message ID: {{this.messageId}}
+  Content: {{this.content}}
+  {{/each}}
+  `,
+});
+
+const summarizeConversationPrompt = ai.definePrompt({
+  name: 'summarizeConversationPrompt',
+  input: {schema: SummarizeConversationInputSchema},
+  output: {schema: SummarizeConversationOutputSchema},
+  prompt: `You are an AI assistant helping to summarize a conversation thread.
+
+  Summarize the following messages from the thread into a concise summary:
+  
+  {{#each messageIds}}
+  Message ID: {{this}}
+  {{/each}}
+  `,
+});
+
+
+// ######################################################################
+// Flow Definitions
+// ######################################################################
+
+export const aiCreateProjectArtifactsFlow = ai.defineFlow(
+  {
+    name: 'aiCreateProjectArtifactsFlow',
+    inputSchema: AICreateProjectArtifactsInputSchema,
+    outputSchema: AICreateProjectArtifactsOutputSchema,
+  },
+  async input => {
+    const {output} = await createProjectArtifactsPrompt(input);
+    return output!;
+  }
+);
+
+export const aiCreateTasksDecisionsConstraintsFlow = ai.defineFlow(
+  {
+    name: 'aiCreateTasksDecisionsConstraintsFlow',
+    inputSchema: AICreateTasksDecisionsConstraintsInputSchema,
+    outputSchema: AICreateTasksDecisionsConstraintsOutputSchema,
+  },
+  async input => {
+    const {output} = await createTasksDecisionsConstraintsPrompt(input);
+    return output!;
+  }
+);
+
 export const suggestNextActionFlow = ai.defineFlow(
   {
     name: 'suggestNextActionFlow',
@@ -150,25 +176,6 @@ export const suggestNextActionFlow = ai.defineFlow(
   }
 );
 
-// ######################################################################
-// ai-summarizes-project-chat.ts
-// ######################################################################
-
-const summarizeProjectChatPrompt = ai.definePrompt({
-  name: 'aiSummarizesProjectChatPrompt',
-  input: {schema: AISummarizesProjectChatInputSchema},
-  output: {schema: AISummarizesProjectChatOutputSchema},
-  prompt: `You are an AI assistant summarizing a project chat thread to create a memory summary.
-
-  Summarize the following messages from the chat thread into a concise summary:
-  
-  {% for message in messages %}
-  Message ID: {{message.messageId}}
-  Content: {{message.content}}
-  {% endfor %}
-  `,
-});
-
 export const aiSummarizesProjectChatFlow = ai.defineFlow(
   {
     name: 'aiSummarizesProjectChatFlow',
@@ -177,31 +184,12 @@ export const aiSummarizesProjectChatFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await summarizeProjectChatPrompt(input);
-    // TODO: Persist the summary to Firestore and mark messages as writtenToMemory
     return {
       summaryText: output!.summaryText,
       messageIds: input.messages.map(message => message.messageId),
     };
   }
 );
-
-// ######################################################################
-// summarize-conversation.ts
-// ######################################################################
-
-const summarizeConversationPrompt = ai.definePrompt({
-  name: 'summarizeConversationPrompt',
-  input: {schema: SummarizeConversationInputSchema},
-  output: {schema: SummarizeConversationOutputSchema},
-  prompt: `You are an AI assistant helping to summarize a conversation thread.
-
-  Summarize the following messages from the thread into a concise summary:
-  
-  {% for messageId in messageIds %}
-  Message ID: {{messageId}}
-  {% endfor %}
-  `,
-});
 
 export const summarizeConversationFlow = ai.defineFlow(
   {
@@ -211,7 +199,6 @@ export const summarizeConversationFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await summarizeConversationPrompt(input);
-    // TODO: Persist the summary to Firestore and mark messages as writtenToMemory
     return {
       summaryText: output!.summaryText,
     };

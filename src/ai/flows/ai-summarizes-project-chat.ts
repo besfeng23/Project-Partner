@@ -3,6 +3,7 @@
  *
  * - aiSummarizesProjectChat - A function that orchestrates the AI's summarization of project chat threads.
  */
+'use server';
 
 import {aiSummarizesProjectChatFlow} from '@/ai/flows';
 import {

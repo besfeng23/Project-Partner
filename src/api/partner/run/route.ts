@@ -3,7 +3,6 @@ import { suggestNextAction } from '@/ai/flows/ai-suggests-next-action';
 import { type SuggestNextActionOutput } from '@/ai/schemas';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
-import type { Task, Decision, Constraint, Artifact, ChatMessage } from '@/lib/types';
 
 async function getProjectData(orgId: string, projectId: string, threadId: string) {
     const projectPath = `orgs/${orgId}/projects/${projectId}`;
