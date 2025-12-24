@@ -1,11 +1,12 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from "next/link";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="space-y-6">
        <div className="flex flex-col gap-1">
         <h1 className="text-3xl font-bold font-headline tracking-tight">
-          Privacy Policy
+          Privacy & EULA
         </h1>
         <p className="text-muted-foreground">
           Last updated: {new Date().toLocaleDateString()}
@@ -76,13 +77,24 @@ export default function PrivacyPolicyPage() {
         </CardContent>
       </Card>
 
+      <Card>
+        <CardHeader>
+          <CardTitle>End User License Agreement (EULA)</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 text-muted-foreground">
+          <p>
+            Your use of this application is also governed by our <Link href="/eula" className="text-primary hover:underline">End User License Agreement</Link>.
+          </p>
+        </CardContent>
+      </Card>
+
        <Card>
         <CardHeader>
           <CardTitle>Contact Us</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 text-muted-foreground">
           <p>
-            If you have any questions about this Privacy Policy, please contact us by visiting the support page.
+            If you have any questions about this Privacy Policy, please contact us by visiting the <Link href="/support" className="text-primary hover:underline">support page</Link>.
           </p>
         </CardContent>
       </Card>

@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
-import { LogOut, Settings, User as UserIcon } from "lucide-react";
+import { LogOut, Settings, User as UserIcon, LifeBuoy, FileText, Shield } from "lucide-react";
 
 export function UserNav() {
   const { user } = useAuth();
@@ -61,6 +61,21 @@ export function UserNav() {
           <DropdownMenuItem onClick={() => router.push('/settings')}>
             <Settings />
             Settings
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+           <DropdownMenuItem onClick={() => router.push('/support')}>
+            <LifeBuoy />
+            Support
+          </DropdownMenuItem>
+           <DropdownMenuItem onClick={() => router.push('/documentation')}>
+            <FileText />
+            Documentation
+          </DropdownMenuItem>
+           <DropdownMenuItem onClick={() => router.push('/privacy')}>
+            <Shield />
+            Privacy & EULA
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
