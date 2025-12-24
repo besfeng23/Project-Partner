@@ -2,7 +2,11 @@
   "mcpServers": {
     "firebase": {
       "command": "npx",
-      "args": ["-y", "firebase-tools@latest", "mcp"]
+      "args": [
+        "-y",
+        "firebase-tools@latest",
+        "mcp"
+      ]
     },
     "github": {
       "url": "https://api.githubcopilot.com/mcp/",
@@ -15,10 +19,34 @@
     },
     "mcp-openai": {
       "command": "npx",
-      "args": ["-y", "@mzxrai/mcp-openai@latest"],
+      "args": [
+        "-y",
+        "@mzxrai/mcp-openai@latest"
+      ],
       "env": {
         "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
       }
     }
+  },
+  "enabledTools": {
+    "firebase": [
+      "firebase_login",
+      "firebase_logout",
+      "firebase_get_project",
+      "firebase_list_apps",
+      "firebase_list_projects",
+      "firebase_get_sdk_config",
+      "firebase_create_project",
+      "firebase_create_app",
+      "firebase_create_android_sha",
+      "firebase_get_environment",
+      "firebase_update_environment",
+      "firebase_init",
+      "firebase_get_security_rules",
+      "firebase_read_resources"
+    ],
+    "github": [],
+    "vercel": [],
+    "mcp-openai": []
   }
 }
