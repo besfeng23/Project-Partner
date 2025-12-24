@@ -28,29 +28,34 @@ import type {
 export async function runAiCreateProjectArtifactsFlow(
   input: AICreateProjectArtifactsInput
 ): Promise<AICreateProjectArtifactsOutput> {
-  return await aiCreateProjectArtifactsFlow(input);
+  const result = await aiCreateProjectArtifactsFlow(input);
+  return result;
 }
 
 export async function runAiCreateTasksDecisionsConstraintsFlow(
   input: AICreateTasksDecisionsConstraintsInput
 ): Promise<AICreateTasksDecisionsConstraintsOutput> {
-  return await aiCreateTasksDecisionsConstraintsFlow(input);
+  const result = await aiCreateTasksDecisionsConstraintsFlow(input);
+  return result;
 }
 
 export async function runSuggestNextActionFlow(
   input: SuggestNextActionInput
 ): Promise<SuggestNextActionOutput> {
-  return await suggestNextActionFlow(input);
+  const result = await suggestNextActionFlow(input);
+  return result;
 }
 
 export async function runAiSummarizesProjectChatFlow(
   input: AISummarizesProjectChatInput
 ): Promise<AISummarizesProjectChatOutput> {
-  return await aiSummarizesProjectChatFlow(input);
+  const result = await aiSummarizesProjectChatFlow(input);
+  return result;
 }
 
 export async function runSummarizeConversationFlow(
   input: SummarizeConversationInput
 ): Promise<SummarizeConversationOutput> {
-  return await summarizeConversationFlow(input);
+  const result = await summarizeConversationFlow(input);
+  return result;
 }

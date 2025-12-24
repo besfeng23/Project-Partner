@@ -1,14 +1,7 @@
 import 'server-only';
 
-import {genkit} from 'genkit';
-import {googleAI} from '@genkit-ai/google-genai';
+import { ai } from './base';
 
 // This is a server-only file and should not be imported into client components.
-export const ai = genkit({
-  plugins: [
-    googleAI({
-      apiKey: process.env.GEMINI_API_KEY,
-    }),
-  ],
-  // The model is defined in the prompt definitions in base.ts
-});
+// It re-exports the initialized 'ai' object from base.ts.
+export { ai };

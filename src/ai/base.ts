@@ -2,7 +2,9 @@
  * @fileoverview This file defines the core Genkit prompts and flow objects.
  * It does NOT contain "use server" and can be safely imported by server-side modules.
  */
-import {ai} from '@/ai/genkit';
+import 'server-only';
+import {genkit} from 'genkit';
+import {googleAI} from '@genkit-ai/google-genai';
 import {
   AICreateProjectArtifactsInputSchema,
   AICreateProjectArtifactsOutputSchema,
@@ -15,6 +17,19 @@ import {
   SummarizeConversationInputSchema,
   SummarizeConversationOutputSchema,
 } from './schemas';
+
+// ######################################################################
+// Genkit Client Initialization
+// ######################################################################
+
+export const ai = genkit({
+  plugins: [
+    googleAI({
+      apiKey: process.env.GEMINI_API_KEY,
+    }),
+  ],
+  // The model is defined in the prompt definitions below
+});
 
 // ######################################################################
 // Prompt Definitions
