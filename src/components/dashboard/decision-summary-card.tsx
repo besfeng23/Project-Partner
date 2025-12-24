@@ -2,13 +2,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import type { Decision } from "@/lib/types";
 import { formatDistanceToNow } from 'date-fns';
 import { GanttChart } from "lucide-react";
+import { Timestamp } from "firebase/firestore";
 
 interface DecisionSummaryCardProps {
     decisions: Decision[];
 }
 
 export function DecisionSummaryCard({ decisions }: DecisionSummaryCardProps) {
-    const recentDecisions = decisions.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()).slice(0, 3);
+    const recentDecisions = decisions.slice(0, 3);
 
     return (
         <Card>
@@ -23,7 +24,9 @@ export function DecisionSummaryCard({ decisions }: DecisionSummaryCardProps) {
                     {recentDecisions.length > 0 ? recentDecisions.map(decision => (
                         <div key={decision.id}>
                             <p className="text-sm font-medium">{decision.title}</p>
-                            <p className="text-sm text-muted-foreground">{formatDistanceToNow(decision.createdAt, { addSuffix: true })}</p>
+                            <p className="text-sm text-muted-foreground">
+                                {decision.createdAt ? formatDistanceToNow((decision.createdAt as Timestamp).toDate(), { addSuffix: true }) : ''}
+                            </p>
                         </div>
                     )) : <p className="text-sm text-muted-foreground">No decisions logged yet.</p>}
                 </div>

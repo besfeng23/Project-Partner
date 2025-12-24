@@ -1,11 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import type { Project } from "@/lib/types";
+import type { Project, VercelConnector } from "@/lib/types";
 import { CheckCircle2, GitBranch, Zap, XCircle } from "lucide-react";
 import { formatDistanceToNow } from 'date-fns';
+import { Timestamp } from "firebase/firestore";
 
 interface ConnectionHealthCardProps {
     project: Project;
+    vercelConnector?: VercelConnector | null;
 }
 
 const StatusItem = ({ label, connected, detail }: { label: string; connected: boolean; detail?: string }) => (
@@ -18,7 +20,12 @@ const StatusItem = ({ label, connected, detail }: { label: string; connected: bo
     </div>
 )
 
-export function ConnectionHealthCard({ project }: ConnectionHealthCardProps) {
+export function ConnectionHealthCard({ project, vercelConnector }: ConnectionHealthCardProps) {
+    const formatDetail = (timestamp?: Timestamp) => {
+        if (!timestamp) return 'Never';
+        return formatDistanceToNow(timestamp.toDate(), { addSuffix: true });
+    }
+
     return (
         <Card>
             <CardHeader className="pb-4">
@@ -30,21 +37,21 @@ export function ConnectionHealthCard({ project }: ConnectionHealthCardProps) {
             <CardContent className="space-y-3">
                 <StatusItem 
                     label="GitHub" 
-                    connected={!!project.connectors.githubRepoUrl} 
+                    connected={false} // Replace with real data
                 />
                 <StatusItem 
                     label="Vercel" 
-                    connected={!!project.connectors.vercelProjectId}
+                    connected={!!vercelConnector}
                 />
                 <StatusItem 
                     label="Last Deploy" 
-                    connected={!!project.health.lastDeployAt}
-                    detail={project.health.lastDeployAt ? formatDistanceToNow(project.health.lastDeployAt, { addSuffix: true }) : 'Never'}
+                    connected={!!project.health?.lastDeployAt}
+                    detail={formatDetail(project.health?.lastDeployAt)}
                 />
                 <StatusItem 
                     label="Last AI Run" 
-                    connected={!!project.health.lastAiRunAt}
-                    detail={project.health.lastAiRunAt ? formatDistanceToNow(project.health.lastAiRunAt, { addSuffix: true }) : 'Never'}
+                    connected={!!project.health?.lastAiRunAt}
+                    detail={formatDetail(project.health?.lastAiRunAt)}
                 />
             </CardContent>
         </Card>

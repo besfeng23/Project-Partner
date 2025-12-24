@@ -3,85 +3,111 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
   
-    // Helper function to check if user is authenticated
+    // --- Helper Functions ---
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper function to get user's role in an organization
-    function getUserRole(orgId) {
-      return get(/databases/$(database)/documents/orgs/$(orgId)/users/$(request.auth.uid)).data.role;
+    function isOrgMember(orgId) {
+      return exists(/databases/$(database)/documents/orgs/$(orgId)/memberships/$(request.auth.uid));
+    }
+
+    function getRole(orgId) {
+      return get(/databases/$(database)/documents/orgs/$(orgId)/memberships/$(request.auth.uid)).data.role;
+    }
+
+    function isRole(orgId, role) {
+      return isOrgMember(orgId) && getRole(orgId) == role;
     }
     
-    // Org data is public for simplicity, but can be restricted
+    function isRoleIn(orgId, roles) {
+      return isOrgMember(orgId) && getRole(orgId) in roles;
+    }
+
+    // --- Rules ---
+    
+    // Orgs collection
     match /orgs/{orgId} {
-      allow read: if isAuthenticated();
-      allow write: if isAuthenticated() && getUserRole(orgId) == 'admin';
-      
-      // Users collection
-      match /users/{uid} {
-        allow read: if isAuthenticated();
-        // Admins can manage users, users can see their own data.
-        allow write: if isAuthenticated() && (getUserRole(orgId) == 'admin' || request.auth.uid == uid);
+      // Anyone authenticated can create an org, they become admin
+      allow create: if isAuthenticated();
+      // Only members can read org details
+      allow read: if isOrgMember(orgId);
+      // Only admins can update org details
+      allow update: if isRole(orgId, 'admin');
+
+      // Memberships subcollection
+      match /memberships/{uid} {
+        // Members can see who else is in the org
+        allow read: if isOrgMember(orgId);
+        // Admins can add/remove/change roles of members.
+        // Users can add themselves as members (e.g. on invite accept), but cannot set their own role to admin.
+        allow write: if isRole(orgId, 'admin') || 
+                      (request.auth.uid == uid && request.resource.data.role != 'admin');
       }
-      
-      // Projects and subcollections
+
+      // Projects subcollection
       match /projects/{projectId} {
-        // Must be a member of the org to read
-        allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
+        // Members can read project details
+        allow read: if isOrgMember(orgId);
+        // Only admins and members can create/update projects
+        allow write: if isRoleIn(orgId, ['admin', 'member']);
         
-        // Only admins and members can write
-        allow write: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-        
+        // --- Project Subcollections ---
+
         // Tasks
         match /tasks/{taskId} {
-          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
-          allow create, update: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-          allow delete: if isAuthenticated() && getUserRole(orgId) == 'admin';
+          allow read: if isOrgMember(orgId);
+          allow write: if isRoleIn(orgId, ['admin', 'member']);
         }
 
         // Decisions (Append-only)
         match /decisions/{decisionId} {
-          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
-          allow create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-          allow update, delete: if false; // Never allow updates or deletes
+          allow read: if isOrgMember(orgId);
+          allow create: if isRoleIn(orgId, ['admin', 'member']);
+          allow update, delete: if false; // NEVER allow updates or deletes
         }
         
         // Constraints
         match /constraints/{constraintId} {
-          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
-          allow create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-          allow delete, update: if isAuthenticated() && getUserRole(orgId) == 'admin';
+          allow read: if isOrgMember(orgId);
+          allow write: if isRoleIn(orgId, ['admin', 'member']);
         }
         
         // Artifacts
         match /artifacts/{artifactId} {
-           allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
-           allow create, update: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-           allow delete: if isAuthenticated() && getUserRole(orgId) == 'admin';
+           allow read: if isOrgMember(orgId);
+           allow write: if isRoleIn(orgId, ['admin', 'member']);
+        }
+        
+        // Vercel Connector
+        match /connectors/vercel {
+           allow read: if isOrgMember(orgId);
+           allow write: if isRoleIn(orgId, ['admin', 'member']); // Client can connect
         }
 
         // Chat Threads & Messages
         match /chatThreads/{threadId} {
-          allow read, write: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
+          allow read, write: if isRoleIn(orgId, ['admin', 'member']);
           match /messages/{messageId} {
-            allow read, create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-            allow update, delete: if isAuthenticated() && getUserRole(orgId) == 'admin';
+            allow read, create: if isRoleIn(orgId, ['admin', 'member']);
+            // Only admin can edit/delete history for moderation
+            allow update, delete: if isRole(orgId, 'admin'); 
           }
         }
         
-        // Memory Summaries
+        // Memory Summaries (AI generated)
         match /memorySummaries/{summaryId} {
-          allow read: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member', 'viewer'];
-          allow create: if isAuthenticated() && getUserRole(orgId) in ['admin', 'member'];
-          allow update, delete: if false; // Append-only nature
+          allow read: if isOrgMember(orgId);
+          // Only backend process should create/write summaries
+          allow write: if false; 
         }
         
-        // Audit (Create-only)
+        // Audit (Append-only, Server-only)
         match /audit/{eventId} {
-          allow read: if isAuthenticated() && getUserRole(orgId) == 'admin';
-          allow create: if isAuthenticated(); // Allow system/members to write audit logs
-          allow update, delete: if false; // Never allow updates or deletes
+          // Only admins can review audit logs
+          allow read: if isRole(orgId, 'admin');
+          // Only backend process can create audit logs
+          allow write: if false;
         }
       }
     }

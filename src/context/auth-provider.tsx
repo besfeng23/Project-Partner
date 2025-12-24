@@ -1,30 +1,42 @@
 "use client";
 
-import { createContext, useEffect, useState, ReactNode } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { onIdTokenChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
+  idToken: string | null;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  const [idToken, setIdToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onIdTokenChanged(auth, async (user) => {
       setUser(user);
+      if (user) {
+        const token = await user.getIdToken();
+        setIdToken(token);
+        // Set a cookie for server-side rendering
+        document.cookie = `idToken=${token}; path=/; max-age=3600; samesite=lax`;
+      } else {
+        setIdToken(null);
+        // Clear the cookie on sign-out
+        document.cookie = 'idToken=; path=/; max-age=-1;';
+      }
       setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
-
+  
   if (loading) {
     return (
         <div className="flex h-screen w-screen items-center justify-center">
@@ -37,8 +49,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, idToken, loading }}>
       {children}
     </AuthContext.Provider>
   );
 }
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (context === undefined) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+    return context;
+};

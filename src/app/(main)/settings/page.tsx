@@ -1,4 +1,5 @@
 
+
 "use client";
 
 import { useState } from "react";
@@ -9,29 +10,50 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/context/auth-provider";
+import { doc, setDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [vercelProjectId, setVercelProjectId] = useState('');
-  const [vercelToken, setVercelToken] = useState('');
-  const [customIntegrationApiKey, setCustomIntegrationApiKey] = useState('');
+  
+  // Hardcoded for now
+  const orgId = "mock-org-id";
+  const projectId = "proj_1";
 
-  const handleVercelConnect = () => {
-    // In a real application, you would securely save this information
-    // and verify the connection.
-    toast({
-      title: "Vercel Connection Updated",
-      description: "Your Vercel Project ID has been saved.",
-    });
-  };
+  const handleVercelConnect = async () => {
+    if (!user || !vercelProjectId) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please enter a Vercel Project ID.",
+        });
+        return;
+    }
+    
+    // In a real app, this would be an API call to a secure backend endpoint
+    // For now, writing directly to Firestore from client for simplicity
+    try {
+        const connectorRef = doc(db, `orgs/${orgId}/projects/${projectId}/connectors/vercel`);
+        await setDoc(connectorRef, {
+            vercelProjectId,
+            connectedAt: new Date(),
+            connectedBy: user.uid,
+        }, { merge: true });
 
-  const handleCustomIntegrationConnect = () => {
-    // In a real application, you would securely save this information
-    // and verify the connection.
-    toast({
-      title: "Custom Integration Connected",
-      description: "Your API key has been saved.",
-    });
+        toast({
+          title: "Vercel Connection Updated",
+          description: "Your Vercel Project ID has been saved.",
+        });
+    } catch(error: any) {
+        toast({
+            variant: "destructive",
+            title: "Connection Failed",
+            description: error.message || "Could not save Vercel Project ID.",
+        });
+    }
   };
 
 
@@ -76,7 +98,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Connectors</CardTitle>
-              <CardDescription>Connect with GitHub, Vercel, and more.</CardDescription>
+              <CardDescription>Connect with GitHub and Vercel.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
                <div>
@@ -92,17 +114,7 @@ export default function SettingsPage() {
                     value={vercelProjectId}
                     onChange={(e) => setVercelProjectId(e.target.value)}
                   />
-                </div>
-                 <div className="space-y-2">
-                  <Label htmlFor="vercel-token">Vercel Access Token</Label>
-                  <Input 
-                    id="vercel-token" 
-                    type="password"
-                    placeholder="vck_..."
-                    value={vercelToken}
-                    onChange={(e) => setVercelToken(e.target.value)}
-                  />
-                   <p className="text-xs text-muted-foreground">This is used to fetch project details from the Vercel API.</p>
+                  <p className="text-xs text-muted-foreground">This is used to fetch project details from the Vercel API. The access token is configured on the server.</p>
                 </div>
                </div>
                 <CardFooter className="border-t px-0 py-4">
@@ -112,23 +124,20 @@ export default function SettingsPage() {
                 <Separator />
 
                 <div>
-                  <h3 className="text-lg font-medium font-headline">Custom API Integration</h3>
-                  <p className="text-sm text-muted-foreground">Set up a generic API integration.</p>
+                  <h3 className="text-lg font-medium font-headline">GitHub</h3>
+                  <p className="text-sm text-muted-foreground">Connect your GitHub repository.</p>
                </div>
                <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="custom-integration-api-key">API Key</Label>
+                  <Label htmlFor="github-repo-url">GitHub Repository URL</Label>
                   <Input 
-                    id="custom-integration-api-key" 
-                    type="password"
-                    placeholder="Enter your API key" 
-                    value={customIntegrationApiKey}
-                    onChange={(e) => setCustomIntegrationApiKey(e.target.value)}
+                    id="github-repo-url" 
+                    placeholder="https://github.com/org/repo" 
                   />
                 </div>
                </div>
                <CardFooter className="border-t px-0 py-4">
-                 <Button onClick={handleCustomIntegrationConnect}>Connect Integration</Button>
+                 <Button>Connect GitHub</Button>
                </CardFooter>
             </CardContent>
           </Card>

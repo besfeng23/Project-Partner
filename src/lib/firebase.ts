@@ -1,7 +1,7 @@
 import { getApp, getApps, initializeApp, type FirebaseOptions } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
+import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -16,5 +16,21 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
+
+if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    // Check for a custom global flag to avoid reconnecting on every hot reload
+    if (!(window as any).__firebaseEmulatorConnected__) {
+        console.log("Connecting to Firebase Emulators");
+        try {
+            connectAuthEmulator(auth, "http://localhost:9099", { disableWarnings: true });
+            connectFirestoreEmulator(db, "localhost", 8080);
+            connectStorageEmulator(storage, "localhost", 9199);
+            (window as any).__firebaseEmulatorConnected__ = true;
+        } catch (error) {
+            console.error("Firebase Emulator connection error:", error);
+        }
+    }
+}
+
 
 export { app, auth, db, storage };

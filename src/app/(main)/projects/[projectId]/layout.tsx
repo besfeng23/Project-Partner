@@ -2,10 +2,13 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
+import { useDocument } from "react-firebase-hooks/firestore";
+import { doc } from "firebase/firestore";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { mockProjects } from "@/lib/mock-data";
-import { ReactNode } from "react";
 import { Card } from "@/components/ui/card";
+import { db } from "@/lib/firebase";
+import type { Project } from "@/lib/types";
+import type { ReactNode } from "react";
 
 const projectTabs = [
   { name: "Overview", href: "" },
@@ -19,10 +22,29 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const params = useParams();
   const projectId = params.projectId as string;
-  const project = mockProjects.find(p => p.id === projectId) ?? mockProjects[0];
+  // In a real app, orgId would come from user's context
+  const orgId = "mock-org-id";
+
+  const projectRef = doc(db, `orgs/${orgId}/projects/${projectId}`);
+  const [snapshot, loading, error] = useDocument(projectRef);
   
+  const project = snapshot?.exists() ? { id: snapshot.id, ...snapshot.data() } as Project : null;
+
   const basePath = `/projects/${projectId}`;
-  const activeTab = pathname.substring(basePath.length) || "";
+  // Determine active tab by finding the most specific match
+  const activeTab = projectTabs.slice().reverse().find(tab => pathname.startsWith(`${basePath}${tab.href}`))?.href ?? "";
+  
+  if (loading) {
+    return <p>Loading project...</p>
+  }
+
+  if (error) {
+    return <p className="text-destructive">Error: {error.message}</p>
+  }
+  
+  if (!project) {
+    return <p>Project not found.</p>
+  }
 
   return (
     <div className="space-y-6">
@@ -39,9 +61,9 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
           ))}
         </TabsList>
       </Tabs>
-      <Card>
+      <div>
         {children}
-      </Card>
+      </div>
     </div>
   );
 }

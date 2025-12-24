@@ -1,12 +1,14 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type UserRole = 'admin' | 'member' | 'viewer';
 
 export interface Org {
   id: string;
   name: string;
-  createdAt: Date;
+  createdAt: Timestamp;
 }
 
-export interface UserProfile {
+export interface OrgMembership {
   uid: string;
   role: UserRole;
   displayName: string;
@@ -16,17 +18,13 @@ export interface UserProfile {
 export interface Project {
   id: string;
   name: string;
-  status: string;
-  createdAt: Date;
-  updatedAt: Date;
-  connectors: {
-    githubRepoUrl?: string;
-    vercelProjectId?: string;
-  };
-  health: {
-    lastDeployAt?: Date;
-    lastWebhookAt?: Date;
-    lastAiRunAt?: Date;
+  status: 'active' | 'planning' | 'paused' | 'archived';
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  health?: {
+    lastDeployAt?: Timestamp;
+    lastWebhookAt?: Timestamp;
+    lastAiRunAt?: Timestamp;
     lastDeployUrl?: string;
   };
 }
@@ -42,9 +40,11 @@ export interface Task {
   priority: TaskPriority;
   acceptanceCriteria: string[];
   blocked: boolean;
+  blockedReason?: string;
   source: 'human' | 'ai';
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+  createdByUid: string;
 }
 
 export interface Decision {
@@ -53,7 +53,8 @@ export interface Decision {
   context: string;
   decision: string;
   consequences: string;
-  createdAt: Date;
+  createdAt: Timestamp;
+  createdByUid: string;
   source: 'human' | 'ai';
   supersedesDecisionId?: string;
 }
@@ -61,33 +62,52 @@ export interface Decision {
 export interface Constraint {
   id: string;
   text: string;
-  createdAt: Date;
+  createdAt: Timestamp;
   source: 'human' | 'ai';
+  createdByUid: string;
 }
 
 export type ArtifactType = 'link' | 'file' | 'note' | 'prompt' | 'spec';
 
 export interface Artifact {
-  id: string;
+  id:string;
   type: ArtifactType;
   title: string;
   url?: string;
   text?: string;
   storagePath?: string;
-  createdAt: Date;
+  createdAt: Timestamp;
+  createdByUid: string;
+}
+
+export interface AuditEvent {
+    id: string;
+    eventType: string;
+    payload: Record<string, any>;
+    createdAt: Timestamp;
+    actorUid: string;
 }
 
 export interface ChatThread {
   id: string;
   title: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 }
 
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant' | 'system';
   content: string;
-  createdAt: Date;
+  createdAt: Timestamp;
   writtenToMemory: boolean;
+}
+
+export interface VercelConnector {
+    vercelProjectId: string;
+    vercelTeamId?: string;
+    connectedAt: Timestamp;
+    lastCheckedAt: Timestamp;
+    lastStatus: 'connected' | 'error';
+    lastError?: string;
 }

@@ -1,11 +1,98 @@
+"use client";
+
+import { useState } from "react";
+import { useCollection } from "react-firebase-hooks/firestore";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { mockProjects } from "@/lib/mock-data";
-import { ArrowRight, PlusCircle, CheckCircle, Clock } from "lucide-react";
-import Link from "next/link";
 import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { db } from "@/lib/firebase";
+import { useAuth } from "@/context/auth-provider";
+import type { Project } from "@/lib/types";
+import { ArrowRight, PlusCircle, CheckCircle, Clock } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+function NewProjectDialog({ orgId }: { orgId: string }) {
+    const [isOpen, setIsOpen] = useState(false);
+    const [name, setName] = useState("");
+    const { toast } = useToast();
+
+    const handleCreateProject = async () => {
+        if (!name.trim()) {
+            toast({
+                variant: "destructive",
+                title: "Project name is required.",
+            });
+            return;
+        }
+
+        const projectsRef = collection(db, `orgs/${orgId}/projects`);
+        try {
+            await addDoc(projectsRef, {
+                name,
+                status: 'planning',
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+            });
+            toast({
+                title: "Project Created",
+                description: `Project "${name}" has been successfully created.`,
+            });
+            setIsOpen(false);
+            setName("");
+        } catch (error: any) {
+            console.error("Error creating project:", error);
+            toast({
+                variant: "destructive",
+                title: "Error",
+                description: "Could not create the project.",
+            });
+        }
+    };
+
+    return (
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle />
+                    New Project
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Create a New Project</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                    <Label htmlFor="project-name">Project Name</Label>
+                    <Input 
+                        id="project-name" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="e.g., Q3 Marketing Campaign"
+                    />
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleCreateProject}>Create Project</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export default function ProjectsPage() {
+  const { user } = useAuth();
+  // For now, we use a mock orgId. This would come from user's session/claims in a real app.
+  const orgId = "mock-org-id";
+
+  const projectsRef = collection(db, `orgs/${orgId}/projects`);
+  const [snapshot, loading, error] = useCollection(projectsRef);
+
+  const projects = snapshot?.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project)) || [];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -15,18 +102,27 @@ export default function ProjectsPage() {
             Manage your projects or create a new one.
           </p>
         </div>
-        <Button>
-          <PlusCircle />
-          New Project
-        </Button>
+        {user && <NewProjectDialog orgId={orgId} />}
       </div>
+
+      {loading && <p>Loading projects...</p>}
+      {error && <p className="text-destructive">Error loading projects: {error.message}</p>}
+      
+      {!loading && projects.length === 0 && (
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          <h3 className="text-lg font-semibold">No Projects Yet</h3>
+          <p className="text-muted-foreground mb-4">Create your first project to get started.</p>
+          {user && <NewProjectDialog orgId={orgId} />}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {mockProjects.map((project, index) => (
+        {projects.map((project, index) => (
           <Card key={project.id} className="hover:border-primary/80 transition-colors flex flex-col group">
             <CardHeader>
               <CardTitle className="font-headline">{project.name}</CardTitle>
-              <CardDescription className="flex items-center gap-2">
-                {project.status === 'Active' ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Clock className="h-4 w-4 text-amber-500" />}
+              <CardDescription className="flex items-center gap-2 capitalize">
+                {project.status === 'active' ? <CheckCircle className="h-4 w-4 text-green-500" /> : <Clock className="h-4 w-4 text-amber-500" />}
                 {project.status}
               </CardDescription>
             </CardHeader>
@@ -36,7 +132,7 @@ export default function ProjectsPage() {
                 <Progress value={(index + 1) * 35} className="h-2" />
               </div>
               <p className="text-sm text-muted-foreground">
-                Last updated: {project.updatedAt.toLocaleDateString()}
+                Last updated: {project.updatedAt?.toDate().toLocaleDateString() || "N/A"}
               </p>
             </CardContent>
             <CardFooter>
