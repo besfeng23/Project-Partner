@@ -3,8 +3,9 @@
  *
  * - summarizeConversation - A function that handles the summarization process.
  */
+'use server';
 
-import {summarizeConversationFlow} from '@/ai/flows';
+import {runSummarizeConversationFlow} from '@/ai/flows';
 import {
   type SummarizeConversationInput,
   type SummarizeConversationOutput,
@@ -13,5 +14,5 @@ import {
 export async function summarizeConversation(
   input: SummarizeConversationInput
 ): Promise<SummarizeConversationOutput> {
-  return summarizeConversationFlow(input);
+  return runSummarizeConversationFlow(input);
 }

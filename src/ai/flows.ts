@@ -13,6 +13,7 @@ import {
   SummarizeConversationInputSchema,
   SummarizeConversationOutputSchema,
 } from './schemas';
+import {defineFlow} from 'genkit';
 
 // ######################################################################
 // Prompt Definitions
@@ -140,7 +141,7 @@ const summarizeConversationPrompt = ai.definePrompt({
 // Flow Definitions
 // ######################################################################
 
-export const aiCreateProjectArtifactsFlow = ai.defineFlow(
+const aiCreateProjectArtifactsFlow = ai.defineFlow(
   {
     name: 'aiCreateProjectArtifactsFlow',
     inputSchema: AICreateProjectArtifactsInputSchema,
@@ -152,7 +153,7 @@ export const aiCreateProjectArtifactsFlow = ai.defineFlow(
   }
 );
 
-export const aiCreateTasksDecisionsConstraintsFlow = ai.defineFlow(
+const aiCreateTasksDecisionsConstraintsFlow = ai.defineFlow(
   {
     name: 'aiCreateTasksDecisionsConstraintsFlow',
     inputSchema: AICreateTasksDecisionsConstraintsInputSchema,
@@ -164,7 +165,7 @@ export const aiCreateTasksDecisionsConstraintsFlow = ai.defineFlow(
   }
 );
 
-export const suggestNextActionFlow = ai.defineFlow(
+const suggestNextActionFlow = ai.defineFlow(
   {
     name: 'suggestNextActionFlow',
     inputSchema: SuggestNextActionInputSchema,
@@ -176,7 +177,7 @@ export const suggestNextActionFlow = ai.defineFlow(
   }
 );
 
-export const aiSummarizesProjectChatFlow = ai.defineFlow(
+const aiSummarizesProjectChatFlow = ai.defineFlow(
   {
     name: 'aiSummarizesProjectChatFlow',
     inputSchema: AISummarizesProjectChatInputSchema,
@@ -191,7 +192,7 @@ export const aiSummarizesProjectChatFlow = ai.defineFlow(
   }
 );
 
-export const summarizeConversationFlow = ai.defineFlow(
+const summarizeConversationFlow = ai.defineFlow(
   {
     name: 'summarizeConversationFlow',
     inputSchema: SummarizeConversationInputSchema,
@@ -204,3 +205,19 @@ export const summarizeConversationFlow = ai.defineFlow(
     };
   }
 );
+
+export async function runAiCreateProjectArtifactsFlow(input) {
+  return await aiCreateProjectArtifactsFlow(input);
+}
+export async function runAiCreateTasksDecisionsConstraintsFlow(input) {
+  return await aiCreateTasksDecisionsConstraintsFlow(input);
+}
+export async function runSuggestNextActionFlow(input) {
+  return await suggestNextActionFlow(input);
+}
+export async function runAiSummarizesProjectChatFlow(input) {
+  return await aiSummarizesProjectChatFlow(input);
+}
+export async function runSummarizeConversationFlow(input) {
+  return await summarizeConversationFlow(input);
+}

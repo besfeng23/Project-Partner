@@ -3,7 +3,9 @@
  *
  * - aiCreateProjectArtifacts - The main function that orchestrates the AI's artifact creation.
  */
-import {aiCreateProjectArtifactsFlow} from '@/ai/flows';
+'use server';
+
+import {runAiCreateProjectArtifactsFlow} from '@/ai/flows';
 import {
   type AICreateProjectArtifactsInput,
   type AICreateProjectArtifactsOutput,
@@ -12,5 +14,5 @@ import {
 export async function aiCreateProjectArtifacts(
   input: AICreateProjectArtifactsInput
 ): Promise<AICreateProjectArtifactsOutput> {
-  return aiCreateProjectArtifactsFlow(input);
+  return runAiCreateProjectArtifactsFlow(input);
 }

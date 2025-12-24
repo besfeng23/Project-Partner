@@ -3,8 +3,9 @@
  *
  * - suggestNextAction - A function that takes project data and user input to suggest the next action.
  */
+'use server';
 
-import {suggestNextActionFlow} from '@/ai/flows';
+import {runSuggestNextActionFlow} from '@/ai/flows';
 import {
   type SuggestNextActionInput,
   type SuggestNextActionOutput,
@@ -13,5 +14,5 @@ import {
 export async function suggestNextAction(
   input: SuggestNextActionInput
 ): Promise<SuggestNextActionOutput> {
-  return suggestNextActionFlow(input);
+  return runSuggestNextActionFlow(input);
 }

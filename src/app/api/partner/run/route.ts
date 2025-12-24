@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { suggestNextAction, type SuggestNextActionOutput } from '@/ai/flows/ai-suggests-next-action';
+import { suggestNextAction } from '@/ai/flows/ai-suggests-next-action';
+import { type SuggestNextActionOutput } from '@/ai/schemas';
 import { adminDb, adminAuth } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
-import type { Task, Decision, Constraint, Artifact, ChatMessage } from '@/lib/types';
 
 async function getProjectData(orgId: string, projectId: string, threadId: string) {
     const projectPath = `orgs/${orgId}/projects/${projectId}`;
@@ -85,7 +85,13 @@ export async function POST(req: NextRequest) {
         }
         const idToken = authorization.split('Bearer ')[1];
         
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        let decodedToken;
+        try {
+          decodedToken = await adminAuth.verifyIdToken(idToken);
+        } catch (error) {
+           return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+        
         const uid = decodedToken.uid;
         
         const userDoc = await adminDb.doc(`orgs/${orgId}/users/${uid}`).get();

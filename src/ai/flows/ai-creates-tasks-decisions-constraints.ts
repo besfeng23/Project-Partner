@@ -3,8 +3,9 @@
  *
  * - aiCreateTasksDecisionsConstraints - The main function that orchestrates the AI's task creation, decision logging, and constraint addition.
  */
+'use server';
 
-import {aiCreateTasksDecisionsConstraintsFlow} from '@/ai/flows';
+import {runAiCreateTasksDecisionsConstraintsFlow} from '@/ai/flows';
 import {
   type AICreateTasksDecisionsConstraintsInput,
   type AICreateTasksDecisionsConstraintsOutput,
@@ -13,5 +14,5 @@ import {
 export async function aiCreateTasksDecisionsConstraints(
   input: AICreateTasksDecisionsConstraintsInput
 ): Promise<AICreateTasksDecisionsConstraintsOutput> {
-  return aiCreateTasksDecisionsConstraintsFlow(input);
+  return runAiCreateTasksDecisionsConstraintsFlow(input);
 }

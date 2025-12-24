@@ -5,7 +5,7 @@
  */
 'use server';
 
-import {aiSummarizesProjectChatFlow} from '@/ai/flows';
+import {runAiSummarizesProjectChatFlow} from '@/ai/flows';
 import {
   type AISummarizesProjectChatInput,
   type AISummarizesProjectChatOutput,
@@ -14,5 +14,5 @@ import {
 export async function aiSummarizesProjectChat(
   input: AISummarizesProjectChatInput
 ): Promise<AISummarizesProjectChatOutput> {
-  return aiSummarizesProjectChatFlow(input);
+  return runAiSummarizesProjectChatFlow(input);
 }
