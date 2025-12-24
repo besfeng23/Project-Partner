@@ -1,4 +1,4 @@
-import {z} from 'genkit';
+import {z} from 'zod';
 
 export const AISummarizesProjectChatInputSchema = z.object({
   orgId: z.string().describe('The ID of the organization.'),
