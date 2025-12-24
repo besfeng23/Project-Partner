@@ -1,29 +1,24 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export async function middleware(request: NextRequest) {
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const idToken = request.cookies.get('idToken')?.value
 
   const isAuthPage = pathname.startsWith('/login')
 
-  if (!idToken) {
-    if (isAuthPage) {
-      // If on the login page and not authenticated, allow access
-      return NextResponse.next()
-    }
-    // If not authenticated, redirect to login page
+  // If user is not authenticated and is not on the login page, redirect to login.
+  if (!idToken && !isAuthPage) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // If the user is authenticated (has a token) and tries to access the login page,
-  // redirect them to the main dashboard.
-  if (isAuthPage) {
+  // If user is authenticated and tries to access the login page, redirect to the dashboard.
+  if (idToken && isAuthPage) {
     return NextResponse.redirect(new URL('/', request.url))
   }
 
-  // If authenticated and not on an auth page, allow the request to proceed.
-  return NextResponse.next();
+  // Otherwise, allow the request to proceed.
+  return NextResponse.next()
 }
 
 export const config = {
