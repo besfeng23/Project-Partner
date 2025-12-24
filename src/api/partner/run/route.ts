@@ -86,7 +86,13 @@ export async function POST(req: NextRequest) {
         }
         const idToken = authorization.split('Bearer ')[1];
         
-        const decodedToken = await adminAuth.verifyIdToken(idToken);
+        let decodedToken;
+        try {
+          decodedToken = await adminAuth.verifyIdToken(idToken);
+        } catch (error) {
+           return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
+        }
+        
         const uid = decodedToken.uid;
         
         const userDoc = await adminDb.doc(`orgs/${orgId}/users/${uid}`).get();

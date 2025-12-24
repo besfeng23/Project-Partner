@@ -8,10 +8,10 @@
 
 import {ai} from '@/ai/genkit';
 import {
-  AISummarizesProjectChatInput,
   AISummarizesProjectChatInputSchema,
-  AISummarizesProjectChatOutput,
   AISummarizesProjectChatOutputSchema,
+  type AISummarizesProjectChatInput,
+  type AISummarizesProjectChatOutput,
 } from '@/ai/schemas';
 
 const prompt = ai.definePrompt({

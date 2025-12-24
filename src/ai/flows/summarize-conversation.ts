@@ -8,12 +8,11 @@
 
 import {ai} from '@/ai/genkit';
 import {
-  SummarizeConversationInput,
   SummarizeConversationInputSchema,
-  SummarizeConversationOutput,
   SummarizeConversationOutputSchema,
+  type SummarizeConversationInput,
+  type SummarizeConversationOutput,
 } from '@/ai/schemas';
-
 
 const summarizeConversationPrompt = ai.definePrompt({
   name: 'summarizeConversationPrompt',
@@ -43,7 +42,6 @@ const summarizeConversationFlow = ai.defineFlow(
     };
   }
 );
-
 
 export async function summarizeConversation(
   input: SummarizeConversationInput

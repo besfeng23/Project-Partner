@@ -239,7 +239,7 @@ export const AICreateTasksDecisionsConstraintsOutputSchema = z.object({
         description: z.string(),
         priority: z.enum(['p0', 'p1', 'p2']),
         acceptanceCriteria: z.array(z.string()),
-        blocked: z-boolean(),
+        blocked: z.boolean(),
       })
     )
     .describe('An array of tasks to create.'),
