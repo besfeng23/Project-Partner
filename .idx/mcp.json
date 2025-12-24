@@ -1,3 +1,24 @@
 {
-  "mcpServers": {}
+  "mcpServers": {
+    "firebase": {
+      "command": "npx",
+      "args": ["-y", "firebase-tools@latest", "mcp"]
+    },
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${env:GITHUB_ACCESS_TOKEN}"
+      }
+    },
+    "vercel": {
+      "url": "https://mcp.vercel.com"
+    },
+    "mcp-openai": {
+      "command": "npx",
+      "args": ["-y", "@mzxrai/mcp-openai@latest"],
+      "env": {
+        "OPENAI_API_KEY": "${env:OPENAI_API_KEY}"
+      }
+    }
+  }
 }

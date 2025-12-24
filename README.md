@@ -78,3 +78,20 @@ This application is optimized for deployment on [Vercel](https://vercel.com).
 3.  Push to your main branch to trigger a deployment.
 
 The application is also compatible with Firebase Hosting.
+
+## Firebase Studio — MCP Setup
+
+- Add real secrets to Firebase Studio Secrets/Env or a local `.env.local` file (never commit secrets).
+- Required environment variables: `GITHUB_ACCESS_TOKEN`, `OPENAI_API_KEY`.
+- In the Firebase Studio terminal, run:
+
+```bash
+node -v
+npm -v
+npx -y firebase-tools@latest --version
+npx -y firebase-tools@latest mcp --help
+npx -y @mzxrai/mcp-openai@latest --help
+firebase login --no-localhost   (if needed)
+```
+
+- In Firebase Studio, go to **Customize Tools** and ensure the MCP servers appear. If they do not, choose **Rebuild Environment** and restart the chat.
