@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { suggestNextAction } from '@/ai/flows/ai-suggests-next-action';
 import type { SuggestNextActionOutput } from '@/ai/schemas';
-import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { getAdminDb, getAdminAuth } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
-async function getProjectData(orgId: string, projectId: string, threadId: string) {
+async function getProjectData(adminDb: FirebaseFirestore.Firestore, orgId: string, projectId: string, threadId: string) {
     const projectPath = `orgs/${orgId}/projects/${projectId}`;
     
     const [
@@ -33,7 +33,7 @@ async function getProjectData(orgId: string, projectId: string, threadId: string
     return { latestSummaries, constraints, tasks, decisions, artifacts, recentChatMessages };
 }
 
-async function persistAiOutput(orgId: string, projectId: string, result: SuggestNextActionOutput, source: 'ai' | 'human') {
+async function persistAiOutput(adminDb: FirebaseFirestore.Firestore, orgId: string, projectId: string, result: SuggestNextActionOutput, source: 'ai' | 'human') {
     const batch = adminDb.batch();
     const projectPath = `orgs/${orgId}/projects/${projectId}`;
 
@@ -72,6 +72,13 @@ async function persistAiOutput(orgId: string, projectId: string, result: Suggest
 
 
 export async function POST(req: NextRequest) {
+    const adminDb = getAdminDb();
+    const adminAuth = getAdminAuth();
+
+    if (!adminDb || !adminAuth) {
+        return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
+    }
+
     try {
         const { orgId, projectId, threadId, mode, userMessage } = await req.json();
 
@@ -107,7 +114,7 @@ export async function POST(req: NextRequest) {
             writtenToMemory: false,
         });
 
-        const projectData = await getProjectData(orgId, projectId, threadId);
+        const projectData = await getProjectData(adminDb, orgId, projectId, threadId);
 
         const aiInput = {
             orgId,
@@ -120,7 +127,7 @@ export async function POST(req: NextRequest) {
 
         const result = await suggestNextAction(aiInput);
 
-        await persistAiOutput(orgId, projectId, result, 'ai');
+        await persistAiOutput(adminDb, orgId, projectId, result, 'ai');
 
         // Add AI message to chat
         const aiMessageRef = adminDb.collection(`orgs/${orgId}/projects/${projectId}/chatThreads/${threadId}/messages`).doc();

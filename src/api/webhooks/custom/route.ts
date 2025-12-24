@@ -1,0 +1,67 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getAdminDb } from '@/lib/firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
+import crypto from 'crypto';
+
+export async function POST(req: NextRequest) {
+    const adminDb = getAdminDb();
+    if (!adminDb) {
+        return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const orgId = searchParams.get('orgId');
+    const projectId = searchParams.get('projectId');
+    
+    if (!orgId || !projectId) {
+        return NextResponse.json({ error: 'Missing orgId or projectId in query parameters' }, { status: 400 });
+    }
+
+    try {
+        const projectRef = adminDb.doc(`orgs/${orgId}/projects/${projectId}`);
+        const projectDoc = await projectRef.get();
+
+        if (!projectDoc.exists) {
+            return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+        }
+        
+        // Optional: For enhanced security, you can verify a secret token.
+        // The 'customIntegrationApiKey' from your settings could be used here as a webhook secret.
+        const customSecret = projectDoc.data()?.connectors?.customIntegrationApiKey;
+        const body = await req.text();
+        
+        if (customSecret) {
+            const signature = req.headers.get('x-custom-signature'); // Or any other signature header
+            if (!signature) {
+                return NextResponse.json({ error: 'Missing signature' }, { status: 401 });
+            }
+
+            // Example of a simple HMAC verification. The external service would need to generate this.
+            const hmac = crypto.createHmac('sha256', customSecret);
+            const digest = `sha256=${hmac.update(body).digest('hex')}`;
+
+            if (!crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest))) {
+                return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
+            }
+        }
+        
+        const payload = JSON.parse(body);
+        
+        const batch = adminDb.batch();
+
+        // Log the event to the project's audit collection
+        const auditRef = adminDb.collection(`orgs/${orgId}/projects/${projectId}/audit`).doc();
+        batch.set(auditRef, {
+            eventType: 'custom_webhook',
+            payload: payload,
+            receivedAt: FieldValue.serverTimestamp(),
+        });
+
+        await batch.commit();
+        
+        return NextResponse.json({ success: true, message: 'Webhook received' });
+    } catch (error: any) {
+        console.error('Custom Webhook Error:', error);
+        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    }
+}
