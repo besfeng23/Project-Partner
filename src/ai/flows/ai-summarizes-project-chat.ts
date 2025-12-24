@@ -4,33 +4,19 @@
  * @fileOverview This file defines a Genkit flow for the AI to summarize project chat threads into memory summaries.
  *
  * - aiSummarizesProjectChat - A function that orchestrates the AI's summarization of project chat threads.
- * - AISummarizesProjectChatInput - The input type for the aiSummarizesProjectChat function.
- * - AISummarizesProjectChatOutput - The output type for the aiSummarizesProjectChat function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {
+  AISummarizesProjectChatInput,
+  AISummarizesProjectChatInputSchema,
+  AISummarizesProjectChatOutput,
+  AISummarizesProjectChatOutputSchema,
+} from '@/ai/schemas';
 
-const AISummarizesProjectChatInputSchema = z.object({
-  orgId: z.string().describe('The ID of the organization.'),
-  projectId: z.string().describe('The ID of the project.'),
-  threadId: z.string().describe('The ID of the chat thread.'),
-  messages: z.array(z.object({
-    messageId: z.string(),
-    content: z.string(),
-  })).describe('The messages from the chat thread to summarize.'),
-});
-
-export type AISummarizesProjectChatInput = z.infer<typeof AISummarizesProjectChatInputSchema>;
-
-const AISummarizesProjectChatOutputSchema = z.object({
-  summaryText: z.string().describe('The summarized text of the chat thread.'),
-  messageIds: z.array(z.string()).describe('The IDs of the messages that were summarized.'),
-});
-
-export type AISummarizesProjectChatOutput = z.infer<typeof AISummarizesProjectChatOutputSchema>;
-
-export async function aiSummarizesProjectChat(input: AISummarizesProjectChatInput): Promise<AISummarizesProjectChatOutput> {
+export async function aiSummarizesProjectChat(
+  input: AISummarizesProjectChatInput
+): Promise<AISummarizesProjectChatOutput> {
   return aiSummarizesProjectChatFlow(input);
 }
 

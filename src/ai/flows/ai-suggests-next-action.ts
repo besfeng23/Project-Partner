@@ -3,55 +3,19 @@
  * @fileOverview This file defines the AI Project Partner flow for suggesting the next action in a project.
  *
  * - suggestNextAction - A function that takes project data and user input to suggest the next action.
- * - SuggestNextActionInput - The input type for the suggestNextAction function.
- * - SuggestNextActionOutput - The return type for the suggestNextAction function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {
+  SuggestNextActionInput,
+  SuggestNextActionInputSchema,
+  SuggestNextActionOutput,
+  SuggestNextActionOutputSchema,
+} from '@/ai/schemas';
 
-const SuggestNextActionInputSchema = z.object({
-  orgId: z.string().describe('The organization ID.'),
-  projectId: z.string().describe('The project ID.'),
-  threadId: z.string().describe('The chat thread ID.'),
-  mode: z.enum(['plan', 'unblock', 'audit', 'optimize', 'prompt_builder']).describe('The mode of operation for the AI partner.'),
-  userMessage: z.string().describe('The user message to the AI partner.'),
-  latestSummaries: z.string().optional().describe('Latest summaries of the project.'),
-  constraints: z.string().optional().describe('Constraints for the project.'),
-  tasks: z.string().optional().describe('Tasks for the project (prioritize p0/blocked).'),
-  decisions: z.string().optional().describe('Decisions made for the project.'),
-  artifacts: z.string().optional().describe('Artifacts for the project.'),
-  recentChatMessages: z.string().optional().describe('Recent chat messages in the project.'),
-});
-export type SuggestNextActionInput = z.infer<typeof SuggestNextActionInputSchema>;
-
-const SuggestNextActionOutputSchema = z.object({
-  recommendedNextAction: z.string().describe('The recommended next action for the project.'),
-  tasksToCreate: z.array(z.object({
-    title: z.string(),
-    description: z.string(),
-    priority: z.enum(['p0', 'p1', 'p2']),
-    acceptanceCriteria: z.array(z.string()),
-    blocked: z.boolean(),
-  })).describe('Tasks to create for the project.'),
-  decisionsToLog: z.array(z.object({
-    title: z.string(),
-    context: z.string(),
-    decision: z.string(),
-    consequences: z.string(),
-  })).describe('Decisions to log for the project.'),
-  constraintsToAdd: z.array(z.object({
-    text: z.string(),
-  })).describe('Constraints to add for the project.'),
-  risks: z.array(z.object({
-    risk: z.string(),
-    mitigation: z.string(),
-  })).describe('Risks associated with the project.'),
-  shortReply: z.string().describe('A short reply to the user message.'),
-});
-export type SuggestNextActionOutput = z.infer<typeof SuggestNextActionOutputSchema>;
-
-export async function suggestNextAction(input: SuggestNextActionInput): Promise<SuggestNextActionOutput> {
+export async function suggestNextAction(
+  input: SuggestNextActionInput
+): Promise<SuggestNextActionOutput> {
   return suggestNextActionFlow(input);
 }
 

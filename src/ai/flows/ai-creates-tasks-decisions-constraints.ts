@@ -4,57 +4,19 @@
  * @fileOverview This file defines a Genkit flow for the AI Project Partner that automatically creates tasks, logs decisions, and adds constraints based on project context and user prompts.
  *
  * - aiCreateTasksDecisionsConstraints - The main function that orchestrates the AI's task creation, decision logging, and constraint addition.
- * - AICreateTasksDecisionsConstraintsInput - The input type for the aiCreateTasksDecisionsConstraints function.
- * - AICreateTasksDecisionsConstraintsOutput - The output type for the aiCreateTasksDecisionsConstraints function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {
+  AICreateTasksDecisionsConstraintsInput,
+  AICreateTasksDecisionsConstraintsInputSchema,
+  AICreateTasksDecisionsConstraintsOutput,
+  AICreateTasksDecisionsConstraintsOutputSchema,
+} from '@/ai/schemas';
 
-const AICreateTasksDecisionsConstraintsInputSchema = z.object({
-  orgId: z.string().describe('The ID of the organization.'),
-  projectId: z.string().describe('The ID of the project.'),
-  threadId: z.string().describe('The ID of the chat thread.'),
-  mode: z.enum(['plan', 'unblock', 'audit', 'optimize', 'prompt_builder']).describe('The mode of operation for the AI.'),
-  userMessage: z.string().describe('The message from the user.'),
-  latestSummaries: z.string().optional().describe('Latest summaries of the project.'),
-  constraints: z.string().optional().describe('Constraints for the project.'),
-  tasks: z.string().optional().describe('Current tasks for the project.'),
-  decisions: z.string().optional().describe('Current decisions for the project.'),
-  artifacts: z.string().optional().describe('Project artifacts.'),
-  recentChatMessages: z.string().optional().describe('Recent chat messages in the thread.'),
-});
-
-export type AICreateTasksDecisionsConstraintsInput = z.infer<typeof AICreateTasksDecisionsConstraintsInputSchema>;
-
-const AICreateTasksDecisionsConstraintsOutputSchema = z.object({
-  recommendedNextAction: z.string().describe('A single recommended next action for the user.'),
-  tasksToCreate: z.array(z.object({
-    title: z.string(),
-    description: z.string(),
-    priority: z.enum(['p0', 'p1', 'p2']),
-    acceptanceCriteria: z.array(z.string()),
-    blocked: z.boolean(),
-  })).describe('An array of tasks to create.'),
-  decisionsToLog: z.array(z.object({
-    title: z.string(),
-    context: z.string(),
-    decision: z.string(),
-    consequences: z.string(),
-  })).describe('An array of decisions to log.'),
-  constraintsToAdd: z.array(z.object({
-    text: z.string(),
-  })).describe('An array of constraints to add.'),
-  risks: z.array(z.object({
-    risk: z.string(),
-    mitigation: z.string(),
-  })).describe('An array of risks and their mitigations.'),
-  shortReply: z.string().describe('A short reply to the user message.'),
-});
-
-export type AICreateTasksDecisionsConstraintsOutput = z.infer<typeof AICreateTasksDecisionsConstraintsOutputSchema>;
-
-export async function aiCreateTasksDecisionsConstraints(input: AICreateTasksDecisionsConstraintsInput): Promise<AICreateTasksDecisionsConstraintsOutput> {
+export async function aiCreateTasksDecisionsConstraints(
+  input: AICreateTasksDecisionsConstraintsInput
+): Promise<AICreateTasksDecisionsConstraintsOutput> {
   return aiCreateTasksDecisionsConstraintsFlow(input);
 }
 

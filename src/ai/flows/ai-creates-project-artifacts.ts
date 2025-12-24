@@ -4,62 +4,19 @@
  * @fileOverview This file defines a Genkit flow for the AI Project Partner to create project artifacts based on user prompts.
  *
  * - aiCreateProjectArtifacts - The main function that orchestrates the AI's artifact creation.
- * - AICreateProjectArtifactsInput - The input type for the aiCreateProjectArtifacts function.
- * - AICreateProjectArtifactsOutput - The output type for the aiCreateProjectArtifacts function.
  */
 
 import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import {
+  AICreateProjectArtifactsInput,
+  AICreateProjectArtifactsInputSchema,
+  AICreateProjectArtifactsOutput,
+  AICreateProjectArtifactsOutputSchema,
+} from '@/ai/schemas';
 
-const AICreateProjectArtifactsInputSchema = z.object({
-  orgId: z.string().describe('The ID of the organization.'),
-  projectId: z.string().describe('The ID of the project.'),
-  threadId: z.string().describe('The ID of the chat thread.'),
-  userMessage: z.string().describe('The message from the user.'),
-  latestSummaries: z.string().optional().describe('Latest summaries of the project.'),
-  constraints: z.string().optional().describe('Constraints for the project.'),
-  tasks: z.string().optional().describe('Current tasks for the project.'),
-  decisions: z.string().optional().describe('Current decisions for the project.'),
-  artifacts: z.string().optional().describe('Project artifacts.'),
-  recentChatMessages: z.string().optional().describe('Recent chat messages in the thread.'),
-});
-
-export type AICreateProjectArtifactsInput = z.infer<typeof AICreateProjectArtifactsInputSchema>;
-
-const AICreateProjectArtifactsOutputSchema = z.object({
-  tasksToCreate: z.array(z.object({
-    title: z.string(),
-    description: z.string(),
-    priority: z.enum(['p0', 'p1', 'p2']),
-    acceptanceCriteria: z.array(z.string()),
-    blocked: z.boolean(),
-  })).describe('An array of tasks to create.'),
-  decisionsToLog: z.array(z.object({
-    title: z.string(),
-    context: z.string(),
-    decision: z.string(),
-    consequences: z.string(),
-  })).describe('An array of decisions to log.'),
-  constraintsToAdd: z.array(z.object({
-    text: z.string(),
-  })).describe('An array of constraints to add.'),
-  artifactsToAdd: z.array(z.object({
-    type: z.string(),
-    title: z.string(),
-    url: z.string().optional(),
-    text: z.string().optional(),
-    storagePath: z.string().optional(),
-  })).describe('An array of artifacts to add to the project.'),
-  risks: z.array(z.object({
-    risk: z.string(),
-    mitigation: z.string(),
-  })).describe('An array of risks and their mitigations.'),
-  shortReply: z.string().describe('A brief and helpful reply to the user.'),
-});
-
-export type AICreateProjectArtifactsOutput = z.infer<typeof AICreateProjectArtifactsOutputSchema>;
-
-export async function aiCreateProjectArtifacts(input: AICreateProjectArtifactsInput): Promise<AICreateProjectArtifactsOutput> {
+export async function aiCreateProjectArtifacts(
+  input: AICreateProjectArtifactsInput
+): Promise<AICreateProjectArtifactsOutput> {
   return aiCreateProjectArtifactsFlow(input);
 }
 
