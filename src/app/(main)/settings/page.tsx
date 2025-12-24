@@ -14,7 +14,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const [vercelProjectId, setVercelProjectId] = useState('');
   const [vercelToken, setVercelToken] = useState('');
-  const [ukIntegrationApiKey, setUkIntegrationApiKey] = useState('');
+  const [customIntegrationApiKey, setCustomIntegrationApiKey] = useState('');
 
   const handleVercelConnect = () => {
     // In a real application, you would securely save this information
@@ -25,11 +25,11 @@ export default function SettingsPage() {
     });
   };
 
-  const handleUkIntegrationConnect = () => {
+  const handleCustomIntegrationConnect = () => {
     // In a real application, you would securely save this information
     // and verify the connection.
     toast({
-      title: "UK Integration Connected",
+      title: "Custom Integration Connected",
       description: "Your API key has been saved.",
     });
   };
@@ -112,23 +112,23 @@ export default function SettingsPage() {
                 <Separator />
 
                 <div>
-                  <h3 className="text-lg font-medium font-headline">UK Integration</h3>
-                  <p className="text-sm text-muted-foreground">Set up the UK integration.</p>
+                  <h3 className="text-lg font-medium font-headline">Custom API Integration</h3>
+                  <p className="text-sm text-muted-foreground">Set up a generic API integration.</p>
                </div>
                <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="uk-integration-api-key">API Key</Label>
+                  <Label htmlFor="custom-integration-api-key">API Key</Label>
                   <Input 
-                    id="uk-integration-api-key" 
+                    id="custom-integration-api-key" 
                     type="password"
                     placeholder="Enter your API key" 
-                    value={ukIntegrationApiKey}
-                    onChange={(e) => setUkIntegrationApiKey(e.target.value)}
+                    value={customIntegrationApiKey}
+                    onChange={(e) => setCustomIntegrationApiKey(e.target.value)}
                   />
                 </div>
                </div>
                <CardFooter className="border-t px-0 py-4">
-                 <Button onClick={handleUkIntegrationConnect}>Connect UK Integration</Button>
+                 <Button onClick={handleCustomIntegrationConnect}>Connect Integration</Button>
                </CardFooter>
             </CardContent>
           </Card>
