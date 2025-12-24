@@ -13,12 +13,6 @@ import {
   SuggestNextActionOutputSchema,
 } from '@/ai/schemas';
 
-export async function suggestNextAction(
-  input: SuggestNextActionInput
-): Promise<SuggestNextActionOutput> {
-  return suggestNextActionFlow(input);
-}
-
 const suggestNextActionPrompt = ai.definePrompt({
   name: 'suggestNextActionPrompt',
   input: {schema: SuggestNextActionInputSchema},
@@ -37,3 +31,9 @@ const suggestNextActionFlow = ai.defineFlow(
     return output!;
   }
 );
+
+export async function suggestNextAction(
+  input: SuggestNextActionInput
+): Promise<SuggestNextActionOutput> {
+  return suggestNextActionFlow(input);
+}

@@ -14,12 +14,6 @@ import {
   AISummarizesProjectChatOutputSchema,
 } from '@/ai/schemas';
 
-export async function aiSummarizesProjectChat(
-  input: AISummarizesProjectChatInput
-): Promise<AISummarizesProjectChatOutput> {
-  return aiSummarizesProjectChatFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'aiSummarizesProjectChatPrompt',
   input: {schema: AISummarizesProjectChatInputSchema},
@@ -50,3 +44,9 @@ const aiSummarizesProjectChatFlow = ai.defineFlow(
     };
   }
 );
+
+export async function aiSummarizesProjectChat(
+  input: AISummarizesProjectChatInput
+): Promise<AISummarizesProjectChatOutput> {
+  return aiSummarizesProjectChatFlow(input);
+}

@@ -14,12 +14,6 @@ import {
   AICreateProjectArtifactsOutputSchema,
 } from '@/ai/schemas';
 
-export async function aiCreateProjectArtifacts(
-  input: AICreateProjectArtifactsInput
-): Promise<AICreateProjectArtifactsOutput> {
-  return aiCreateProjectArtifactsFlow(input);
-}
-
 const prompt = ai.definePrompt({
   name: 'aiCreateProjectArtifactsPrompt',
   input: {schema: AICreateProjectArtifactsInputSchema},
@@ -44,3 +38,10 @@ const aiCreateProjectArtifactsFlow = ai.defineFlow(
     return output!;
   }
 );
+
+
+export async function aiCreateProjectArtifacts(
+  input: AICreateProjectArtifactsInput
+): Promise<AICreateProjectArtifactsOutput> {
+  return aiCreateProjectArtifactsFlow(input);
+}

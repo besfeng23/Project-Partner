@@ -14,11 +14,6 @@ import {
   SummarizeConversationOutputSchema,
 } from '@/ai/schemas';
 
-export async function summarizeConversation(
-  input: SummarizeConversationInput
-): Promise<SummarizeConversationOutput> {
-  return summarizeConversationFlow(input);
-}
 
 const summarizeConversationPrompt = ai.definePrompt({
   name: 'summarizeConversationPrompt',
@@ -48,3 +43,10 @@ const summarizeConversationFlow = ai.defineFlow(
     };
   }
 );
+
+
+export async function summarizeConversation(
+  input: SummarizeConversationInput
+): Promise<SummarizeConversationOutput> {
+  return summarizeConversationFlow(input);
+}

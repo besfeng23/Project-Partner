@@ -14,11 +14,6 @@ import {
   AICreateTasksDecisionsConstraintsOutputSchema,
 } from '@/ai/schemas';
 
-export async function aiCreateTasksDecisionsConstraints(
-  input: AICreateTasksDecisionsConstraintsInput
-): Promise<AICreateTasksDecisionsConstraintsOutput> {
-  return aiCreateTasksDecisionsConstraintsFlow(input);
-}
 
 const prompt = ai.definePrompt({
   name: 'aiCreateTasksDecisionsConstraintsPrompt',
@@ -38,3 +33,10 @@ const aiCreateTasksDecisionsConstraintsFlow = ai.defineFlow(
     return output!;
   }
 );
+
+
+export async function aiCreateTasksDecisionsConstraints(
+  input: AICreateTasksDecisionsConstraintsInput
+): Promise<AICreateTasksDecisionsConstraintsOutput> {
+  return aiCreateTasksDecisionsConstraintsFlow(input);
+}
