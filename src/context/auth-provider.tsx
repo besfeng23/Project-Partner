@@ -1,9 +1,10 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { onIdTokenChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import type { User } from 'firebase/auth';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AppError } from '@/components/app-error';
+import { useAuth as useFirebaseAuth } from '@/hooks/use-auth';
 
 interface AuthContextType {
   user: User | null;
@@ -14,35 +15,56 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const { user, loading, error } = useFirebaseAuth();
   const [idToken, setIdToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [tokenError, setTokenError] = useState<Error | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onIdTokenChanged(auth, async (user) => {
-      if (user) {
-        setUser(user);
-        const token = await user.getIdToken();
-        setIdToken(token);
-      } else {
-        setUser(null);
-        setIdToken(null);
-      }
-      setLoading(false);
-    });
+    let isMounted = true;
 
-    return () => unsubscribe();
-  }, []);
-  
+    if (!user) {
+      setIdToken(null);
+      setTokenError(null);
+      return;
+    }
+
+    user
+      .getIdToken()
+      .then((token) => {
+        if (isMounted) {
+          setIdToken(token);
+          setTokenError(null);
+        }
+      })
+      .catch((tokenErr) => {
+        if (isMounted) {
+          setIdToken(null);
+          setTokenError(tokenErr as Error);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  if (error) {
+    return <AppError title="Authentication error" message={error.message} />;
+  }
+
+  if (tokenError) {
+    return <AppError title="Session error" message={tokenError.message} />;
+  }
+
   if (loading) {
     return (
-        <div className="flex h-screen w-screen items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <Skeleton className="h-12 w-12 rounded-full" />
-                <Skeleton className="h-4 w-48" />
-            </div>
+      <div className="flex h-screen w-screen items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <Skeleton className="h-4 w-48" />
         </div>
-    )
+      </div>
+    );
   }
 
   return (
@@ -52,10 +74,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+export const useAuthContext = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuthContext must be used within an AuthProvider');
+  }
+  return context;
+};
+
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+  return useAuthContext();
 };

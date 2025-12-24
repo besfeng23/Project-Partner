@@ -4,28 +4,23 @@ import admin from 'firebase-admin';
 // This is a server-only file.
 
 function loadServiceAccount() {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-    try {
-      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-    } catch (e) {
-      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY', e);
-      return null;
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+
+  if (!rawServiceAccount) {
+    console.error('FIREBASE_SERVICE_ACCOUNT_KEY is not set.');
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(rawServiceAccount);
+    if (parsed.private_key) {
+      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
     }
+    return parsed;
+  } catch (e) {
+    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY', e);
+    return null;
   }
-
-  if (
-    process.env.FIREBASE_PROJECT_ID &&
-    process.env.FIREBASE_CLIENT_EMAIL &&
-    process.env.FIREBASE_PRIVATE_KEY
-  ) {
-    return {
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    };
-  }
-
-  return null;
 }
 
 function initializeAdminApp() {

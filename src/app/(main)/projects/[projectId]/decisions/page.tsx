@@ -10,12 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { db } from "@/lib/firebase";
+import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
 import type { Decision } from "@/lib/types";
 import { format } from "date-fns";
 import { PlusCircle } from "lucide-react";
 import { useAuth } from "@/context/auth-provider";
 import { useToast } from "@/hooks/use-toast";
+import { AppError } from "@/components/app-error";
 
 
 function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: string }) {
@@ -117,10 +118,20 @@ export default function DecisionsPage() {
   const projectId = params.projectId as string;
   // In a real app, orgId would come from user's context
   const orgId = "mock-org-id";
+  const firebaseError = getFirebaseClientError();
+  const db = getFirebaseDb();
 
-  const decisionsRef = collection(db, `orgs/${orgId}/projects/${projectId}/decisions`);
-  const q = query(decisionsRef, orderBy("createdAt", "desc"));
+  const decisionsRef = db ? collection(db, `orgs/${orgId}/projects/${projectId}/decisions`) : null;
+  const q = decisionsRef ? query(decisionsRef, orderBy("createdAt", "desc")) : null;
   const [snapshot, loading, error] = useCollection(q);
+
+  if (firebaseError) {
+    return <AppError title="Could not load decisions" message={firebaseError.message} />;
+  }
+
+  if (!db) {
+    return <AppError title="Could not load decisions" message={'Firebase client is unavailable.'} />;
+  }
 
   const decisions = snapshot?.docs.map(doc => ({ id: doc.id, ...doc.data() } as Decision)) || [];
 
@@ -130,7 +141,7 @@ export default function DecisionsPage() {
         <NewDecisionDialog orgId={orgId} projectId={projectId} />
       </div>
       {loading && <p>Loading decisions...</p>}
-      {error && <p className="text-destructive">Error loading decisions: {error.message}</p>}
+      {error && <AppError title="Error loading decisions" message={error.message} />}
       {!loading && decisions.length === 0 && (
           <div className="text-center py-12">
               <h3 className="text-lg font-semibold">No Decisions Logged</h3>

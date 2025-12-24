@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { getFirebaseAuth, getFirebaseClientError } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,15 +16,23 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { LogOut, Settings, User as UserIcon, LifeBuoy, FileText, Shield } from "lucide-react";
+import { AppError } from "./app-error";
 
 export function UserNav() {
   const { user } = useAuth();
   const router = useRouter();
+  const auth = getFirebaseAuth();
+  const firebaseError = getFirebaseClientError();
 
   const handleSignOut = async () => {
+    if (!auth) return;
     await signOut(auth);
     router.push('/login');
   };
+
+  if (firebaseError || !auth) {
+    return <AppError title="Authentication unavailable" message={firebaseError?.message ?? 'Firebase client not ready.'} />;
+  }
   
   const getInitials = (email?: string | null) => {
     if (!email) return 'U';

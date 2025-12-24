@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { aiSummarizesProjectChat } from '@/ai/flows/ai-summarizes-project-chat';
-import { adminDb, adminAuth } from '@/lib/firebase-admin';
+import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(req: NextRequest) {
+    const adminDb = getAdminDb();
+    const adminAuth = getAdminAuth();
+
+    if (!adminDb || !adminAuth) {
+        return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
+    }
+
     try {
         const { orgId, projectId, threadId } = await req.json();
 

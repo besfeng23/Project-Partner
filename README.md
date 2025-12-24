@@ -41,6 +41,17 @@ cp .env.example .env.local
 
 You will need to create a Firebase project and get your web app's configuration keys. Enable Email/Password authentication in the Firebase console.
 
+Required variables:
+
+- `NEXT_PUBLIC_FIREBASE_API_KEY`
+- `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
+- `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
+- `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
+- `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
+- `NEXT_PUBLIC_FIREBASE_APP_ID`
+- `NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID` (optional)
+- `FIREBASE_SERVICE_ACCOUNT_KEY` (JSON string for the Admin SDK; ensure newlines in `private_key` are encoded as `\n`)
+
 ### 3. Install Dependencies
 
 ```bash
