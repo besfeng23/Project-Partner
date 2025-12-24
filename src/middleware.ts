@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifyIdToken } from './lib/firebase-admin';
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -10,33 +9,21 @@ export async function middleware(request: NextRequest) {
 
   if (!idToken) {
     if (isAuthPage) {
+      // If on the login page and not authenticated, allow access
       return NextResponse.next()
     }
-    // Redirect to login if not authenticated and not on an auth page
+    // If not authenticated, redirect to login page
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // If there's a token, verify it
-  try {
-    const decodedToken = await verifyIdToken(idToken);
-    if (!decodedToken) {
-        throw new Error("Invalid token");
-    }
-    
-    // If user is authenticated and tries to access login page, redirect to home
-    if (isAuthPage) {
-        return NextResponse.redirect(new URL('/', request.url))
-    }
-
-    return NextResponse.next();
-
-  } catch (error) {
-    console.log('Middleware token verification error:', error);
-    // If token verification fails, clear cookie and redirect to login
-    const response = NextResponse.redirect(new URL('/login', request.url))
-    response.cookies.delete('idToken');
-    return response;
+  // If the user is authenticated (has a token) and tries to access the login page,
+  // redirect them to the main dashboard.
+  if (isAuthPage) {
+    return NextResponse.redirect(new URL('/', request.url))
   }
+
+  // If authenticated and not on an auth page, allow the request to proceed.
+  return NextResponse.next();
 }
 
 export const config = {

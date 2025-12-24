@@ -2,7 +2,7 @@
 
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth } from "@/context/auth-provider";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
