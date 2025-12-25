@@ -23,8 +23,8 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const params = useParams();
   const projectId = params.projectId as string;
-  // In a real app, orgId would come from user's context
-  const orgId = "mock-org-id";
+  // Canonical org-scoped path for this app.
+  const orgId = "default";
   const firebaseError = getFirebaseClientError();
   const db = getFirebaseDb();
 

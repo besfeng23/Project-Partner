@@ -8,7 +8,7 @@ export default function ChatPage() {
     const projectId = params.projectId as string;
 
     // For MVP, using static IDs. In a real app, these would come from user context and DB.
-    const orgId = "mock-org-id";
+    const orgId = "default";
     const threadId = "default-thread"; 
     
     return (

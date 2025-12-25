@@ -18,8 +18,9 @@ import { useAuth } from "@/context/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { AppError } from "@/components/app-error";
 
+import type { Firestore } from "firebase/firestore";
 
-function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: string }) {
+function NewDecisionDialog({ db, orgId, projectId }: { db: Firestore; orgId: string; projectId: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [title, setTitle] = useState("");
     const [context, setContext] = useState("");
@@ -116,8 +117,8 @@ function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: str
 export default function DecisionsPage() {
   const params = useParams();
   const projectId = params.projectId as string;
-  // In a real app, orgId would come from user's context
-  const orgId = "mock-org-id";
+  // Canonical org-scoped path for this app.
+  const orgId = "default";
   const firebaseError = getFirebaseClientError();
   const db = getFirebaseDb();
 
@@ -138,7 +139,7 @@ export default function DecisionsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <NewDecisionDialog orgId={orgId} projectId={projectId} />
+        <NewDecisionDialog db={db} orgId={orgId} projectId={projectId} />
       </div>
       {loading && <p>Loading decisions...</p>}
       {error && <AppError title="Error loading decisions" message={error.message} />}
