@@ -1,3 +1,4 @@
+
 "use client";
 
 import { signOut } from "firebase/auth";
@@ -27,6 +28,7 @@ export function UserNav() {
   const handleSignOut = async () => {
     if (!auth) return;
     await signOut(auth);
+    // The cookie is now cleared by the onIdTokenChanged listener in AuthProvider
     router.push('/login');
   };
 

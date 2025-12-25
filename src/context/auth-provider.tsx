@@ -1,8 +1,9 @@
+
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import type { User } from 'firebase/auth';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, onIdTokenChanged } from 'firebase/auth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AppError } from '@/components/app-error';
 import { getFirebaseAuth, isFirebaseInitialized, requireFirebaseClients } from '@/lib/firebase';
@@ -15,6 +16,16 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Helper to manage the auth cookie
+const setAuthCookie = (token: string | null) => {
+  if (token) {
+    document.cookie = `idToken=${token}; path=/; max-age=3600`; // max-age 1 hour
+  } else {
+    document.cookie = 'idToken=; path=/; max-age=-1;'; // Expire the cookie
+  }
+};
+
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
@@ -23,10 +34,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      // Ensure firebase is initialized before setting up the listener
       const auth = getFirebaseAuth();
 
-      const unsubscribe = onAuthStateChanged(
+      // Listen for ID token changes to set the cookie for the middleware
+      const unsubscribeIdToken = onIdTokenChanged(auth, async (user) => {
+        if (user) {
+          const token = await user.getIdToken();
+          setIdToken(token);
+          setAuthCookie(token);
+        } else {
+          setIdToken(null);
+          setAuthCookie(null);
+        }
+      });
+      
+      // Listen for user state changes for the app's context
+      const unsubscribeAuthState = onAuthStateChanged(
         auth,
         (user) => {
           setUser(user);
@@ -39,20 +62,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
       );
 
-      return () => unsubscribe();
+      return () => {
+        unsubscribeIdToken();
+        unsubscribeAuthState();
+      };
     } catch (e: any) {
       setError(e);
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    if (user) {
-      user.getIdToken().then(setIdToken);
-    } else {
-      setIdToken(null);
-    }
-  }, [user]);
 
   if (error) {
     return <AppError title="Authentication error" message={error.message} />;
