@@ -17,7 +17,9 @@ import { ArrowRight, PlusCircle, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AppError } from "@/components/app-error";
 
-function NewProjectDialog({ orgId }: { orgId: string }) {
+import type { Firestore } from "firebase/firestore";
+
+function NewProjectDialog({ db, orgId }: { db: Firestore; orgId: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState("");
     const { toast } = useToast();
@@ -86,8 +88,8 @@ function NewProjectDialog({ orgId }: { orgId: string }) {
 
 export default function ProjectsPage() {
   const { user } = useAuth();
-  // For now, we use a mock orgId. This would come from user's session/claims in a real app.
-  const orgId = "mock-org-id";
+  // Canonical org-scoped path for this app.
+  const orgId = "default";
   const firebaseError = getFirebaseClientError();
   const db = getFirebaseDb();
   const projectsRef = db ? collection(db, `orgs/${orgId}/projects`) : null;
@@ -112,7 +114,7 @@ export default function ProjectsPage() {
             Manage your projects or create a new one.
           </p>
         </div>
-        {user && <NewProjectDialog orgId={orgId} />}
+        {user && <NewProjectDialog db={db} orgId={orgId} />}
       </div>
 
       {loading && <p>Loading projects...</p>}
@@ -122,7 +124,7 @@ export default function ProjectsPage() {
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-semibold">No Projects Yet</h3>
           <p className="text-muted-foreground mb-4">Create your first project to get started.</p>
-          {user && <NewProjectDialog orgId={orgId} />}
+          {user && <NewProjectDialog db={db} orgId={orgId} />}
         </div>
       )}
 

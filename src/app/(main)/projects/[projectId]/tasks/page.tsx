@@ -108,7 +108,7 @@ export default function TasksPage() {
   const params = useParams();
   const projectId = params.projectId as string;
   // In a real app, orgId would come from a user context / session
-  const orgId = "mock-org-id";
+  const orgId = "default";
 
   return (
     <div className="space-y-4">

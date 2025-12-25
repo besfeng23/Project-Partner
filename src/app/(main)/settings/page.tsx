@@ -27,7 +27,7 @@ export default function SettingsPage() {
   }
   
   // Hardcoded for now
-  const orgId = "mock-org-id";
+  const orgId = "default";
   const projectId = "proj_1";
 
   const handleVercelConnect = async () => {
