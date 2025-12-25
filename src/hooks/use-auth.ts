@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirebaseAuth, getFirebaseClientError } from '@/lib/firebase';
+import { getFirebaseAuth, getFirebaseClientError, isFirebaseInitialized } from '@/lib/firebase';
 
 interface AuthState {
   user: User | null;
@@ -16,52 +16,38 @@ export function useAuth(): AuthState {
     loading: true,
     error: null,
   });
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const firebaseInitError = getFirebaseClientError();
-    const auth = getFirebaseAuth();
-
-    if (firebaseInitError || !auth) {
-      setAuthState({
-        user: null,
-        loading: false,
-        error: firebaseInitError ?? new Error('Firebase Auth is not available.'),
-      });
+    if (firebaseInitError) {
+      setAuthState({ user: null, loading: false, error: firebaseInitError });
       return;
     }
 
-    timeoutRef.current = setTimeout(() => {
-      setAuthState((prev) => ({
-        ...prev,
-        loading: false,
-        error: prev.error ?? new Error('Authentication timeout. Please reload.'),
-      }));
-    }, 10_000);
+    if (!isFirebaseInitialized()) {
+      // Firebase is not ready yet, wait for the next render.
+      // The initializer runs in client.ts, and a re-render will be triggered.
+      return;
+    }
+    
+    const auth = getFirebaseAuth();
+    if (!auth) {
+       setAuthState({ user: null, loading: false, error: new Error("Firebase Auth is not available.") });
+       return;
+    }
 
     const unsubscribe = onAuthStateChanged(
       auth,
       (user) => {
         setAuthState({ user, loading: false, error: null });
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
       },
       (error) => {
         setAuthState({ user: null, loading: false, error });
-        if (timeoutRef.current) {
-          clearTimeout(timeoutRef.current);
-        }
       }
     );
 
-    return () => {
-      unsubscribe();
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
+    return () => unsubscribe();
+  }, []); // Empty dependency array ensures this runs until firebase is initialized
 
   return authState;
 }

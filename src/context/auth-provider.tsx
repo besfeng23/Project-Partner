@@ -17,43 +17,17 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { user, loading, error } = useFirebaseAuth();
   const [idToken, setIdToken] = useState<string | null>(null);
-  const [tokenError, setTokenError] = useState<Error | null>(null);
-
+  
   useEffect(() => {
-    let isMounted = true;
-
-    if (!user) {
+    if (user) {
+      user.getIdToken().then(setIdToken);
+    } else {
       setIdToken(null);
-      setTokenError(null);
-      return;
     }
-
-    user
-      .getIdToken()
-      .then((token) => {
-        if (isMounted) {
-          setIdToken(token);
-          setTokenError(null);
-        }
-      })
-      .catch((tokenErr) => {
-        if (isMounted) {
-          setIdToken(null);
-          setTokenError(tokenErr as Error);
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
   }, [user]);
 
   if (error) {
     return <AppError title="Authentication error" message={error.message} />;
-  }
-
-  if (tokenError) {
-    return <AppError title="Session error" message={tokenError.message} />;
   }
 
   if (loading) {
