@@ -18,16 +18,17 @@ Project Partner is a web application that acts as a long-term project copilot an
 - Firebase Project
 - Google AI API Key for Genkit
 
-### 2. Setup Environment Variables
+### 2. Environment Variables (Firebase Studio & Vercel)
 
-Copy the `.env.example` file to a new file named `.env.local` and fill in the required Firebase and AI credentials.
+To run the application, you need to configure several environment variables. Create a `.env.local` file in your root directory by copying `.env.example`:
 
 ```bash
 cp .env.example .env.local
 ```
 
-You will need to create a Firebase project and get your web app's configuration keys. Enable Email/Password authentication in the Firebase console.
+Fill in the values in `.env.local` with your credentials. These variables are required for both local development (via Firebase Studio) and Vercel deployments.
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 Required variables:
 
@@ -43,35 +44,54 @@ Required variables:
 ### 3. Install Dependencies
 =======
 ### 3. Vercel Setup
+=======
+**Required Variables:**
+>>>>>>> 8b5b253 (You are Firebase Studio working on repo: besfeng23/Project-Partner.)
 
-For the application to build and run correctly on Vercel, you must set the following environment variables in your Vercel project settings:
+```
+# Firebase Client Configuration (public keys)
+NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+
+# Firebase Admin Configuration (server-side only)
+# IMPORTANT: This is a secret. Paste the entire JSON content as a single line.
+FIREBASE_SERVICE_ACCOUNT_KEY=
+
+# Genkit/Gemini AI Configuration (server-side only)
+GEMINI_API_KEY=
+```
+
+#### **Setting Variables in Firebase Studio**
+
+1.  In the Firebase Studio IDE, navigate to **Project Settings** (the gear icon in the left sidebar).
+2.  Go to the **Environment Variables** section.
+3.  Add each of the variables listed above.
+4.  Restart the preview server for the changes to take effect.
+
+#### **Setting Variables on Vercel**
 
 1.  Navigate to your Vercel Project → **Settings** → **Environment Variables**.
 2.  Add each variable from your `.env.local` file.
 3.  **IMPORTANT**: For each variable, ensure you select the **Production**, **Preview**, and **Development** environments. The app will not work if the variables are not available in all environments.
-4.  The required variables are:
-    - `NEXT_PUBLIC_FIREBASE_API_KEY`
-    - `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`
-    - `NEXT_PUBLIC_FIREBASE_PROJECT_ID`
-    - `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`
-    - `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID`
-    - `NEXT_PUBLIC_FIREBASE_APP_ID`
-    - `FIREBASE_SERVICE_ACCOUNT_KEY` (as a single JSON string)
-    - `GEMINI_API_KEY`
+4.  After adding the variables, you must **redeploy** your application for the changes to take effect.
 
+<<<<<<< HEAD
 5.  After adding the variables, you must **redeploy** your application for the changes to take effect.
 
 ### 4. Install Dependencies
 >>>>>>> 0ae23be (You are Firebase Studio working on repo: besfeng23/Project-Partner.)
+=======
+### 3. Install Dependencies
+>>>>>>> 8b5b253 (You are Firebase Studio working on repo: besfeng23/Project-Partner.)
 
 ```bash
 npm install
 ```
 
-### 5. Run the Development Server
+### 4. Run the Development Server
 
-```bash
-npm run dev
-```
-
-The application will be available at `http://localhost:9002`.
+The development server is managed by Firebase Studio. Use the "Run" button in the IDE to start the preview. The application will be available at a unique URL provided by the Studio.

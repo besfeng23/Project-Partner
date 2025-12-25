@@ -35,7 +35,7 @@ export function FirebaseConfigChecker({ children }: { children: ReactNode }) {
           <ProjectPartnerIcon className="h-6 w-6" />
           Project Partner
         </div>
-        <Card className="w-full max-w-2xl border-destructive/50">
+        <Card className="w-full max-w-3xl border-destructive/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle />
@@ -65,30 +65,53 @@ export function FirebaseConfigChecker({ children }: { children: ReactNode }) {
                 ))}
               </div>
             </div>
+            
+            <div className="space-y-4">
+              <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  How to Fix on Vercel
+                </h3>
+                <ol className="list-decimal list-inside text-sm text-muted-foreground space-y-2">
+                  <li>
+                    Go to your project in the Vercel Dashboard.
+                  </li>
+                  <li>
+                    Navigate to{' '}
+                    <strong className="text-foreground/90">
+                      Settings &rarr; Environment Variables
+                    </strong>
+                    .
+                  </li>
+                  <li>
+                    Add the missing variables listed above. Ensure they are set for{' '}
+                    <strong className="text-foreground/90">Production, Preview, and Development</strong>.
+                  </li>
+                  <li>
+                    <strong className="text-foreground/90">Redeploy</strong> your application for the changes to take effect.
+                  </li>
+                </ol>
+              </div>
 
-            <div className="space-y-3 rounded-lg border border-border bg-card p-4">
-               <h3 className="font-semibold text-foreground flex items-center gap-2">
-                <Info className="h-4 w-4" />
-                How to Fix
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                If running on Vercel, add the missing variables in{' '}
-                <strong className="text-foreground/90">
-                  Project Settings &rarr; Environment Variables
-                </strong>
-                , ensuring they are available for all environments (Production, Preview, and Development), then redeploy.
-              </p>
-              <p className="text-sm text-muted-foreground pt-2 border-t border-border">
-                If running in Firebase Studio Preview, add these variables in <strong className="text-foreground/90">Project Settings → Environment Variables</strong>.
-              </p>
+              <div className="space-y-3 rounded-lg border border-border bg-card p-4">
+                <h3 className="font-semibold text-foreground flex items-center gap-2">
+                  <Info className="h-4 w-4" />
+                  How to Fix in Firebase Studio
+                </h3>
+                 <p className="text-sm text-muted-foreground">
+                    If running in Firebase Studio Preview, add the required variables in{' '}
+                    <strong className="text-foreground/90">
+                        Project Settings &rarr; Environment Variables
+                    </strong> and restart the preview.
+                  </p>
+              </div>
             </div>
+
           </CardContent>
         </Card>
       </div>
     );
   }
   
-  // Render children immediately to avoid content flash and layout shifts.
-  // The check above will overlay the error if needed after the client-side check.
   return <>{children}</>;
 }
