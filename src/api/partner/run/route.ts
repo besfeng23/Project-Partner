@@ -37,6 +37,11 @@ async function persistAiOutput(adminDb: FirebaseFirestore.Firestore, orgId: stri
     const batch = adminDb.batch();
     const projectPath = `orgs/${orgId}/projects/${projectId}`;
 
+    const hasWrites =
+        (result.tasksToCreate?.length ?? 0) > 0 ||
+        (result.decisionsToLog?.length ?? 0) > 0 ||
+        (result.constraintsToAdd?.length ?? 0) > 0;
+
     result.tasksToCreate?.forEach(task => {
         const newTaskRef = adminDb.collection(`${projectPath}/tasks`).doc();
         batch.set(newTaskRef, {
@@ -66,7 +71,7 @@ async function persistAiOutput(adminDb: FirebaseFirestore.Firestore, orgId: stri
         });
     });
 
-    if (batch.isEmpty) return;
+    if (!hasWrites) return;
     await batch.commit();
 }
 

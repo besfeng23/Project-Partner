@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminDb, getAdminAuth, verifyIdToken } from '@/lib/firebase-admin';
+import { getAdminDb, verifyIdToken } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
-export async function POST(req: NextRequest, { params }: { params: { orgId: string, projectId: string } }) {
-    const { orgId, projectId } = params;
+export async function POST(
+  req: NextRequest,
+  { params }: { params: Promise<{ orgId: string; projectId: string }> }
+) {
+    const { orgId, projectId } = await params;
     const db = getAdminDb();
     
     const authorization = req.headers.get('Authorization');

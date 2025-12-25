@@ -2,12 +2,6 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     remotePatterns: [
       {
@@ -30,11 +24,14 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  experimental: {
-    // This is to allow cross-origin requests in development.
-    // The dev environment in Firebase Studio uses a different origin.
-    allowedDevOrigins: ["https://*.cloudworkstations.dev"],
-  }
+  experimental:
+    process.env.NODE_ENV === 'development'
+      ? ({
+          // This is to allow cross-origin requests in development.
+          // The dev environment in Firebase Studio uses a different origin.
+          allowedDevOrigins: ['https://*.cloudworkstations.dev'],
+        } as any)
+      : {},
 };
 
 export default nextConfig;

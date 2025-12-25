@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminDb, verifyIdToken } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
-export async function PATCH(req: NextRequest, { params }: { params: { orgId: string, projectId: string, taskId: string } }) {
-    const { orgId, projectId, taskId } = params;
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ orgId: string; projectId: string; taskId: string }> }
+) {
+    const { orgId, projectId, taskId } = await params;
     const db = getAdminDb();
     
     const authorization = req.headers.get('Authorization');

@@ -38,6 +38,16 @@ function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: str
             return;
         }
 
+        const db = getFirebaseDb();
+        if (!db) {
+            toast({
+                variant: "destructive",
+                title: "Unavailable",
+                description: "Firebase is not available right now.",
+            });
+            return;
+        }
+
         const decisionsRef = collection(db, `orgs/${orgId}/projects/${projectId}/decisions`);
         
         try {

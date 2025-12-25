@@ -9,11 +9,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-provider";
 import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
-import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
+import { Timestamp, collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { AppError } from "./app-error";
 
 const initialMessages: ChatMessage[] = [
-    { id: '1', role: 'assistant', content: 'Hello! How can I help you with the project today?', createdAt: new Date(), writtenToMemory: true },
+    { id: '1', role: 'assistant', content: 'Hello! How can I help you with the project today?', createdAt: Timestamp.now(), writtenToMemory: true },
 ];
 
 export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; projectId: string; threadId: string }) {
@@ -41,7 +41,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
                     id: doc.id,
                     role: data.role,
                     content: data.content,
-                    createdAt: data.createdAt?.toDate() ?? new Date(),
+                    createdAt: data.createdAt ?? Timestamp.now(),
                     writtenToMemory: data.writtenToMemory,
                  } as ChatMessage
             });
@@ -52,7 +52,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
                 id: Date.now().toString() + 'err',
                 role: 'assistant',
                 content: 'Could not load chat history.',
-                createdAt: new Date(),
+                createdAt: Timestamp.now(),
                 writtenToMemory: false
             };
             setMessages(prev => [...prev, errorResponse]);
@@ -83,7 +83,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
             id: `optimistic-${Date.now()}`,
             role: 'user',
             content: currentInput,
-            createdAt: new Date(),
+            createdAt: Timestamp.now(),
             writtenToMemory: false
         };
 
@@ -121,7 +121,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
                 id: Date.now().toString() + 'err',
                 role: 'assistant',
                 content: `Sorry, I encountered an error: ${error.message}`,
-                createdAt: new Date(),
+                createdAt: Timestamp.now(),
                 writtenToMemory: false
             };
             setMessages(prev => [...prev, errorResponse]);
