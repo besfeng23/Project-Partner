@@ -13,7 +13,6 @@ interface FirebaseClients {
 let clients: FirebaseClients | null = null;
 let initError: Error | null = null;
 
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCG0-VRD83KgcriAE1hmAPkj23SI220XSI",
   authDomain: "studio-4392536114-4d72f.firebaseapp.com",
@@ -23,8 +22,14 @@ const firebaseConfig = {
   appId: "1:678045416702:web:96597678802f19042cb9af"
 };
 
-function initializeFirebase() {
-  if (clients || initError) return;
+function initializeFirebase(): FirebaseClients {
+  if (clients) {
+    return clients;
+  }
+
+  if (initError) {
+    throw initError;
+  }
 
   try {
     const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -33,46 +38,48 @@ function initializeFirebase() {
     const storage = getStorage(app);
 
     clients = { app, auth, db, storage };
+    return clients;
   } catch (error) {
     initError = error as Error;
+    throw initError;
   }
 }
 
-export function getFirebaseClients(): FirebaseClients | null {
-  initializeFirebase();
-  return clients;
+// These getters are now the primary way to access Firebase services.
+// They ensure that initialization has been attempted.
+
+export function getFirebaseClients(): FirebaseClients {
+  return requireFirebaseClients();
 }
 
 export function getFirebaseClientError(): Error | null {
-  initializeFirebase();
   return initError;
 }
 
 export function requireFirebaseClients(): FirebaseClients {
-  initializeFirebase();
+  if (!clients) {
+    return initializeFirebase();
+  }
   if (initError) {
     throw initError;
-  }
-  if (!clients) {
-    throw new Error('Firebase client is not available.');
   }
   return clients;
 }
 
-export function getFirebaseAuth(): Auth | null {
-  return getFirebaseClients()?.auth ?? null;
+export function getFirebaseAuth(): Auth {
+  return requireFirebaseClients().auth;
 }
 
-export function getFirebaseDb(): Firestore | null {
-  return getFirebaseClients()?.db ?? null;
+export function getFirebaseDb(): Firestore {
+  return requireFirebaseClients().db;
 }
 
-export function getFirebaseStorage(): FirebaseStorage | null {
-  return getFirebaseClients()?.storage ?? null;
+export function getFirebaseStorage(): FirebaseStorage {
+  return requireFirebaseClients().storage;
 }
 
-export function getFirebaseApp(): FirebaseApp | null {
-  return getFirebaseClients()?.app ?? null;
+export function getFirebaseApp(): FirebaseApp {
+  return requireFirebaseClients().app;
 }
 
 export const isFirebaseInitialized = () => clients !== null && initError === null;

@@ -1,53 +1,11 @@
 "use client";
 
-import { useEffect, useState } from 'react';
-import { onAuthStateChanged, type User } from 'firebase/auth';
-import { getFirebaseAuth, getFirebaseClientError, isFirebaseInitialized } from '@/lib/firebase';
+// This hook is now deprecated in favor of using the AuthContext directly.
+// The logic has been moved into the AuthProvider for a more robust initialization flow.
+// You can now use `useAuth` from `@/context/auth-provider` throughout the app.
 
-interface AuthState {
-  user: User | null;
-  loading: boolean;
-  error: Error | null;
-}
-
-export function useAuth(): AuthState {
-  const [authState, setAuthState] = useState<AuthState>({
-    user: null,
-    loading: true,
-    error: null,
-  });
-
-  useEffect(() => {
-    const firebaseInitError = getFirebaseClientError();
-    if (firebaseInitError) {
-      setAuthState({ user: null, loading: false, error: firebaseInitError });
-      return;
-    }
-
-    if (!isFirebaseInitialized()) {
-      // Firebase is not ready yet, wait for the next render.
-      // The initializer runs in client.ts, and a re-render will be triggered.
-      return;
-    }
-    
-    const auth = getFirebaseAuth();
-    if (!auth) {
-       setAuthState({ user: null, loading: false, error: new Error("Firebase Auth is not available.") });
-       return;
-    }
-
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        setAuthState({ user, loading: false, error: null });
-      },
-      (error) => {
-        setAuthState({ user: null, loading: false, error });
-      }
-    );
-
-    return () => unsubscribe();
-  }, []); // Empty dependency array ensures this runs until firebase is initialized
-
-  return authState;
+export function useOldAuth() {
+  // This function is kept to avoid breaking changes if it was imported elsewhere,
+  // but it should not be used. The real `useAuth` is in the provider.
+  throw new Error("useAuth from 'hooks/use-auth' is deprecated. Import `useAuth` from `@/context/auth-provider` instead.");
 }
