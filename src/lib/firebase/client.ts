@@ -13,38 +13,21 @@ interface FirebaseClients {
 let clients: FirebaseClients | null = null;
 let initError: Error | null = null;
 
-function getEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing Firebase env var: ${name}`);
-  }
-  return value;
-}
-
-function buildConfig(): FirebaseOptions {
-  const config: FirebaseOptions = {
-    apiKey: getEnv('NEXT_PUBLIC_FIREBASE_API_KEY'),
-    authDomain: getEnv('NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN'),
-    projectId: getEnv('NEXT_PUBLIC_FIREBASE_PROJECT_ID'),
-    storageBucket: getEnv('NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET'),
-    messagingSenderId: getEnv('NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID'),
-    appId: getEnv('NEXT_PUBLIC_FIREBASE_APP_ID'),
-  };
-
-  const measurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID;
-  if (measurementId) {
-    config.measurementId = measurementId;
-  }
-
-  return config;
-}
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCG0-VRD83KgcriAE1hmAPkj23SI220XSI",
+  authDomain: "studio-4392536114-4d72f.firebaseapp.com",
+  projectId: "studio-4392536114-4d72f",
+  storageBucket: "studio-4392536114-4d72f.appspot.com",
+  messagingSenderId: "678045416702",
+  appId: "1:678045416702:web:96597678802f19042cb9af"
+};
 
 function initializeFirebase() {
   if (clients || initError) return;
 
   try {
-    const config = buildConfig();
-    const app = !getApps().length ? initializeApp(config) : getApp();
+    const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
@@ -67,7 +50,6 @@ function initializeFirebase() {
   } catch (error) {
     initError = error as Error;
     // The FirebaseConfigChecker component will show a UI error, so this console log is redundant.
-    // console.error('Failed to initialize Firebase client:', initError.message);
   }
 }
 
