@@ -1,13 +1,13 @@
 "use client"
 
 import { useCollection } from "react-firebase-hooks/firestore";
-import { collection, query, orderBy, doc, updateDoc } from "firebase/firestore";
-import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { collection, query, orderBy, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { getFirebaseDb } from "@/lib/firebase";
 import type { Task, TaskStatus } from "@/lib/types";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { cn } from "@/lib/utils";
-import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, Draggable, type DropResult } from "@hello-pangea/dnd";
 import { useToast } from "@/hooks/use-toast";
 import { AppError } from "./app-error";
 
@@ -64,17 +64,12 @@ const KanbanColumn = ({ columnId, title, tasks }: { columnId: TaskStatus, title:
 );
 
 export function KanbanBoard({ orgId, projectId }: { orgId: string, projectId: string }) {
-    const firebaseError = getFirebaseClientError();
     const db = getFirebaseDb();
     const { toast } = useToast();
 
     const tasksRef = db ? collection(db, `orgs/${orgId}/projects/${projectId}/tasks`) : null;
     const q = tasksRef ? query(tasksRef, orderBy("updatedAt", "desc")) : null;
     const [snapshot, loading, error] = useCollection(q);
-
-    if (firebaseError) {
-        return <AppError title="Could not load tasks" message={firebaseError.message} />;
-    }
 
     if (!db) {
         return <AppError title="Could not load tasks" message={'Firebase client is unavailable.'} />;
@@ -108,7 +103,7 @@ export function KanbanBoard({ orgId, projectId }: { orgId: string, projectId: st
         try {
             await updateDoc(taskRef, {
                 status: newStatus,
-                updatedAt: new Date() // Use client-side timestamp for optimistic update
+                updatedAt: serverTimestamp() 
             });
             toast({
                 title: "Task Updated",

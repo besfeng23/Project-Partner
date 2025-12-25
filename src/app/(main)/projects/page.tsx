@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useCollection } from "react-firebase-hooks/firestore";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, query, where } from "firebase/firestore";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,20 +10,24 @@ import { Progress } from "@/components/ui/progress";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import { useAuth } from "@/context/auth-provider";
 import type { Project } from "@/lib/types";
 import { ArrowRight, PlusCircle, CheckCircle, Clock } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { AppError } from "@/components/app-error";
 
+const ORG_ID = "default";
+
 function NewProjectDialog({ orgId }: { orgId: string }) {
     const [isOpen, setIsOpen] = useState(false);
     const [name, setName] = useState("");
     const { toast } = useToast();
+    const { user } = useAuth();
+    const db = getFirebaseDb();
 
     const handleCreateProject = async () => {
-        if (!name.trim()) {
+        if (!name.trim() || !user || !db) {
             toast({
                 variant: "destructive",
                 title: "Project name is required.",
@@ -38,6 +42,7 @@ function NewProjectDialog({ orgId }: { orgId: string }) {
                 status: 'planning',
                 createdAt: serverTimestamp(),
                 updatedAt: serverTimestamp(),
+                createdBy: user.uid,
             });
             toast({
                 title: "Project Created",
@@ -50,7 +55,7 @@ function NewProjectDialog({ orgId }: { orgId: string }) {
             toast({
                 variant: "destructive",
                 title: "Error",
-                description: "Could not create the project.",
+                description: error.message || "Could not create the project.",
             });
         }
     };
@@ -85,17 +90,53 @@ function NewProjectDialog({ orgId }: { orgId: string }) {
 }
 
 export default function ProjectsPage() {
-  const { user } = useAuth();
-  // For now, we use a mock orgId. This would come from user's session/claims in a real app.
-  const orgId = "mock-org-id";
-  const firebaseError = getFirebaseClientError();
+  const { user, idToken } = useAuth();
   const db = getFirebaseDb();
-  const projectsRef = db ? collection(db, `orgs/${orgId}/projects`) : null;
+  const [retried, setRetried] = useState(false);
+  const { toast } = useToast();
+
+  const projectsRef = db ? collection(db, `orgs/${ORG_ID}/projects`) : null;
   const [snapshot, loading, error] = useCollection(projectsRef);
 
-  if (firebaseError) {
-    return <AppError title="Could not load projects" message={firebaseError.message} />;
-  }
+  const handleBootstrap = useCallback(async () => {
+    if (!idToken) {
+        toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: "Cannot bootstrap without a valid user session."
+        });
+        return;
+    };
+    try {
+        const response = await fetch('/api/admin/bootstrap', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${idToken}`,
+            },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || 'Bootstrap failed');
+        }
+        toast({
+            title: "Setup Complete",
+            description: "Your organization has been configured. Retrying...",
+        });
+        setRetried(true); // This will trigger a re-render and re-run the useCollection hook
+    } catch (bootstrapError: any) {
+        toast({
+            variant: "destructive",
+            title: "Setup Failed",
+            description: bootstrapError.message,
+        });
+    }
+  }, [idToken, toast]);
+
+  useEffect(() => {
+    if (error && error.code === 'permission-denied' && !retried) {
+      handleBootstrap();
+    }
+  }, [error, retried, handleBootstrap]);
 
   if (!db) {
     return <AppError title="Could not load projects" message={'Firebase client is unavailable.'} />;
@@ -112,17 +153,23 @@ export default function ProjectsPage() {
             Manage your projects or create a new one.
           </p>
         </div>
-        {user && <NewProjectDialog orgId={orgId} />}
+        {user && <NewProjectDialog orgId={ORG_ID} />}
       </div>
 
       {loading && <p>Loading projects...</p>}
-      {error && <AppError title="Error loading projects" message={error.message} />}
+      {error && (
+          <AppError 
+              title="Error loading projects" 
+              message={error.message} 
+              onRetry={error.code === 'permission-denied' ? handleBootstrap : undefined}
+          />
+      )}
       
-      {!loading && projects.length === 0 && (
+      {!loading && !error && projects.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-semibold">No Projects Yet</h3>
           <p className="text-muted-foreground mb-4">Create your first project to get started.</p>
-          {user && <NewProjectDialog orgId={orgId} />}
+          {user && <NewProjectDialog orgId={ORG_ID} />}
         </div>
       )}
 

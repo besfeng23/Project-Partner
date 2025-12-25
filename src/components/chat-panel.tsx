@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Paperclip, SendHorizonal, Bot } from "lucide-react";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
@@ -8,7 +8,7 @@ import type { ChatMessage } from "@/lib/types";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/auth-provider";
-import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import { collection, onSnapshot, orderBy, query } from "firebase/firestore";
 import { AppError } from "./app-error";
 
@@ -17,12 +17,20 @@ const initialMessages: ChatMessage[] = [
 ];
 
 export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; projectId: string; threadId: string }) {
-    const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+    const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const { user } = useAuth();
-    const firebaseError = getFirebaseClientError();
+    const { user, idToken } = useAuth();
     const db = getFirebaseDb();
+    const messagesEndRef = useRef<HTMLDivElement | null>(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
 
     useEffect(() => {
         if (!projectId || !orgId || !threadId || !db) return;
@@ -31,7 +39,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
         const q = query(messagesRef, orderBy("createdAt", "asc"));
 
         const unsubscribe = onSnapshot(q, (querySnapshot) => {
-            if (querySnapshot.empty && messages.length <= 1) { // Check length to avoid clearing optimistic updates
+            if (querySnapshot.empty) {
                 setMessages(initialMessages);
                 return;
             }
@@ -59,11 +67,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
         });
 
         return () => unsubscribe();
-    }, [projectId, orgId, threadId, db, messages.length]);
-
-    if (firebaseError) {
-        return <AppError title="Chat unavailable" message={firebaseError.message} />;
-    }
+    }, [projectId, orgId, threadId, db]);
 
     if (!db) {
         return <AppError title="Chat unavailable" message={'Firebase client is unavailable.'} />;
@@ -76,23 +80,13 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
 
     const handleSendMessage = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!input.trim() || isLoading || !user) return;
+        if (!input.trim() || isLoading || !user || !idToken) return;
         
         const currentInput = input;
-        const optimisticMessage: ChatMessage = {
-            id: `optimistic-${Date.now()}`,
-            role: 'user',
-            content: currentInput,
-            createdAt: new Date(),
-            writtenToMemory: false
-        };
-
-        setMessages(prev => [...prev, optimisticMessage]);
         setInput('');
         setIsLoading(true);
 
         try {
-            const idToken = await user.getIdToken();
             const response = await fetch('/api/partner/run', {
                 method: 'POST',
                 headers: {
@@ -112,11 +106,9 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'AI partner failed to respond.');
             }
-            // onSnapshot will handle adding the new messages to the UI
+            // onSnapshot will handle adding the new messages to the UI, including the optimistic one from the API.
         } catch (error: any) {
             console.error(error);
-            // Remove optimistic message and add a temporary error message
-            setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id));
             const errorResponse: ChatMessage = {
                 id: Date.now().toString() + 'err',
                 role: 'assistant',
@@ -163,6 +155,7 @@ export function ChatPanel({ orgId, projectId, threadId }: { orgId: string; proje
                         </div>
                     </div>
                  )}
+                 <div ref={messagesEndRef} />
             </div>
             <div className="border-t p-4 bg-card rounded-b-xl">
                 <form onSubmit={handleSendMessage} className="relative">

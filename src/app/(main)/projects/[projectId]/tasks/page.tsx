@@ -12,7 +12,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { PlusCircle } from "lucide-react";
 import { useAuth } from "@/context/auth-provider";
 import { useToast } from "@/hooks/use-toast";
-import type { TaskPriority, TaskStatus } from "@/lib/types";
+import type { TaskPriority } from "@/lib/types";
+
+const ORG_ID = "default";
 
 function NewTaskDialog({ orgId, projectId }: { orgId: string; projectId: string }) {
     const { idToken } = useAuth();
@@ -30,6 +32,7 @@ function NewTaskDialog({ orgId, projectId }: { orgId: string; projectId: string 
         }
 
         try {
+            // Note: This API route doesn't exist yet but will be created.
             const response = await fetch(`/api/orgs/${orgId}/projects/${projectId}/tasks`, {
                 method: 'POST',
                 headers: {
@@ -107,15 +110,13 @@ function NewTaskDialog({ orgId, projectId }: { orgId: string; projectId: string 
 export default function TasksPage() {
   const params = useParams();
   const projectId = params.projectId as string;
-  // In a real app, orgId would come from a user context / session
-  const orgId = "mock-org-id";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <NewTaskDialog orgId={orgId} projectId={projectId} />
+        <NewTaskDialog orgId={ORG_ID} projectId={projectId} />
       </div>
-      <KanbanBoard orgId={orgId} projectId={projectId} />
+      <KanbanBoard orgId={ORG_ID} projectId={projectId} />
     </div>
   );
 }

@@ -1,8 +1,6 @@
 import 'server-only';
 import admin from 'firebase-admin';
 
-// This is a server-only file.
-
 let adminApp: admin.app.App | null = null;
 let adminAuth: admin.auth.Auth | null = null;
 let adminDb: admin.firestore.Firestore | null = null;
@@ -55,16 +53,19 @@ initializeAdminApp();
 
 export function getAdminApp() {
   if (adminInitError) throw adminInitError;
+  if (!adminApp) throw new Error("Firebase Admin App not initialized");
   return adminApp;
 }
 
 export function getAdminAuth() {
   if (adminInitError) throw adminInitError;
+  if (!adminAuth) throw new Error("Firebase Admin Auth not initialized");
   return adminAuth;
 }
 
 export function getAdminDb() {
   if (adminInitError) throw adminInitError;
+  if (!adminDb) throw new Error("Firebase Admin DB not initialized");
   return adminDb;
 }
 

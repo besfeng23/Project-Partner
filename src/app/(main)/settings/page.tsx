@@ -1,5 +1,3 @@
-
-
 "use client";
 
 import { useState } from "react";
@@ -12,23 +10,23 @@ import { useToast } from "@/hooks/use-toast";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/auth-provider";
 import { doc, setDoc } from "firebase/firestore";
-import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import { AppError } from "@/components/app-error";
+
+const ORG_ID = "default";
 
 export default function SettingsPage() {
   const { toast } = useToast();
   const { user } = useAuth();
   const [vercelProjectId, setVercelProjectId] = useState('');
-  const firebaseError = getFirebaseClientError();
   const db = getFirebaseDb();
-
-  if (firebaseError || !db) {
-    return <AppError title="Unable to load settings" message={firebaseError?.message ?? 'Firebase client is unavailable.'} />;
-  }
   
-  // Hardcoded for now
-  const orgId = "mock-org-id";
+  // This is a placeholder. In a real app, you'd have a project selector.
   const projectId = "proj_1";
+
+  if (!db) {
+    return <AppError title="Unable to load settings" message={'Firebase client is unavailable.'} />;
+  }
 
   const handleVercelConnect = async () => {
     if (!user || !vercelProjectId) {
@@ -43,7 +41,7 @@ export default function SettingsPage() {
     // In a real app, this would be an API call to a secure backend endpoint
     // For now, writing directly to Firestore from client for simplicity
     try {
-        const connectorRef = doc(db, `orgs/${orgId}/projects/${projectId}/connectors/vercel`);
+        const connectorRef = doc(db, `orgs/${ORG_ID}/projects/${projectId}/connectors/vercel`);
         await setDoc(connectorRef, {
             vercelProjectId,
             connectedAt: new Date(),

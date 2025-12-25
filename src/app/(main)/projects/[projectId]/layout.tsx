@@ -5,8 +5,7 @@ import { usePathname, useParams } from "next/navigation";
 import { useDocument } from "react-firebase-hooks/firestore";
 import { doc } from "firebase/firestore";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
-import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import type { Project } from "@/lib/types";
 import type { ReactNode } from "react";
 import { AppError } from "@/components/app-error";
@@ -19,21 +18,16 @@ const projectTabs = [
   { name: "AI Partner", href: "/chat" },
 ];
 
+const ORG_ID = "default";
+
 export default function ProjectLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const params = useParams();
   const projectId = params.projectId as string;
-  // In a real app, orgId would come from user's context
-  const orgId = "mock-org-id";
-  const firebaseError = getFirebaseClientError();
   const db = getFirebaseDb();
 
-  const projectRef = db ? doc(db, `orgs/${orgId}/projects/${projectId}`) : null;
+  const projectRef = db ? doc(db, `orgs/${ORG_ID}/projects/${projectId}`) : null;
   const [snapshot, loading, error] = useDocument(projectRef);
-
-  if (firebaseError) {
-    return <AppError title="Could not load project" message={firebaseError.message} />;
-  }
 
   if (!db) {
     return <AppError title="Could not load project" message={'Firebase client is unavailable.'} />;
@@ -54,7 +48,7 @@ export default function ProjectLayout({ children }: { children: ReactNode }) {
   }
   
   if (!project) {
-    return <p>Project not found.</p>
+    return <AppError title="Project not found" message="This project could not be found." />
   }
 
   return (

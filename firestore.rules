@@ -9,11 +9,11 @@ service cloud.firestore {
     }
 
     function isOrgMember(orgId) {
-      return exists(/databases/$(database)/documents/orgs/$(orgId)/memberships/$(request.auth.uid));
+      return exists(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid));
     }
 
     function getRole(orgId) {
-      return get(/databases/$(database)/documents/orgs/$(orgId)/memberships/$(request.auth.uid)).data.role;
+      return get(/databases/$(database)/documents/orgs/$(orgId)/members/$(request.auth.uid)).data.role;
     }
 
     function isRole(orgId, role) {
@@ -35,19 +35,21 @@ service cloud.firestore {
       // Only admins can update org details
       allow update: if isRole(orgId, 'admin');
 
-      // Memberships subcollection
-      match /memberships/{uid} {
-        // Members can see who else is in the org
-        allow read: if isOrgMember(orgId);
+      // Members subcollection
+      match /members/{uid} {
+        // Admins can read any membership.
+        // Users can read their own membership.
+        allow read: if isRole(orgId, 'admin') || request.auth.uid == uid;
         // Admins can add/remove/change roles of members.
-        // Users can add themselves as members (e.g. on invite accept), but cannot set their own role to admin.
-        allow write: if isRole(orgId, 'admin') || 
-                      (request.auth.uid == uid && request.resource.data.role != 'admin');
+        allow write: if isRole(orgId, 'admin');
+        // Users can create their own membership doc during bootstrap (via server)
+        // but cannot set their own role or modify it later.
+        allow create: if request.auth.uid == uid;
       }
 
       // Projects subcollection
       match /projects/{projectId} {
-        // Members can read project details
+        // Members of the org can read project details
         allow read: if isOrgMember(orgId);
         // Only admins and members can create/update projects
         allow write: if isRoleIn(orgId, ['admin', 'member']);
@@ -110,6 +112,11 @@ service cloud.firestore {
           allow write: if false;
         }
       }
+    }
+    
+    // Default deny all other paths
+    match /{path=**} {
+      allow read, write: if false;
     }
   }
 }

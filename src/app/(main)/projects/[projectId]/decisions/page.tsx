@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { getFirebaseClientError, getFirebaseDb } from "@/lib/firebase";
+import { getFirebaseDb } from "@/lib/firebase";
 import type { Decision } from "@/lib/types";
 import { format } from "date-fns";
 import { PlusCircle } from "lucide-react";
@@ -18,6 +18,7 @@ import { useAuth } from "@/context/auth-provider";
 import { useToast } from "@/hooks/use-toast";
 import { AppError } from "@/components/app-error";
 
+const ORG_ID = "default";
 
 function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: string }) {
     const [isOpen, setIsOpen] = useState(false);
@@ -27,9 +28,10 @@ function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: str
     const [consequences, setConsequences] = useState("");
     const { user } = useAuth();
     const { toast } = useToast();
+    const db = getFirebaseDb();
 
     const handleSubmit = async () => {
-        if (!user || !title || !context || !decision || !consequences) {
+        if (!user || !title || !context || !decision || !consequences || !db) {
             toast({
                 variant: "destructive",
                 title: "Missing fields",
@@ -116,18 +118,11 @@ function NewDecisionDialog({ orgId, projectId }: { orgId: string, projectId: str
 export default function DecisionsPage() {
   const params = useParams();
   const projectId = params.projectId as string;
-  // In a real app, orgId would come from user's context
-  const orgId = "mock-org-id";
-  const firebaseError = getFirebaseClientError();
   const db = getFirebaseDb();
 
-  const decisionsRef = db ? collection(db, `orgs/${orgId}/projects/${projectId}/decisions`) : null;
+  const decisionsRef = db ? collection(db, `orgs/${ORG_ID}/projects/${projectId}/decisions`) : null;
   const q = decisionsRef ? query(decisionsRef, orderBy("createdAt", "desc")) : null;
   const [snapshot, loading, error] = useCollection(q);
-
-  if (firebaseError) {
-    return <AppError title="Could not load decisions" message={firebaseError.message} />;
-  }
 
   if (!db) {
     return <AppError title="Could not load decisions" message={'Firebase client is unavailable.'} />;
@@ -138,7 +133,7 @@ export default function DecisionsPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-end">
-        <NewDecisionDialog orgId={orgId} projectId={projectId} />
+        <NewDecisionDialog orgId={ORG_ID} projectId={projectId} />
       </div>
       {loading && <p>Loading decisions...</p>}
       {error && <AppError title="Error loading decisions" message={error.message} />}
