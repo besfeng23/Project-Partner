@@ -31,6 +31,16 @@ function NewProjectDialog({ orgId }: { orgId: string }) {
             return;
         }
 
+        const db = getFirebaseDb();
+        if (!db) {
+            toast({
+                variant: "destructive",
+                title: "Unavailable",
+                description: "Firebase is not available right now.",
+            });
+            return;
+        }
+
         const projectsRef = collection(db, `orgs/${orgId}/projects`);
         try {
             await addDoc(projectsRef, {
