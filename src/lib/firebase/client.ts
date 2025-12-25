@@ -57,7 +57,8 @@ function initializeFirebase() {
           connectStorageEmulator(storage, 'localhost', 9199);
           (window as any).__firebaseEmulatorConnected__ = true;
         } catch (emulatorError) {
-          console.error('Firebase Emulator connection error:', emulatorError);
+          // This might fail if the emulators aren't running, which is fine.
+          // We don't want to spam the console in that case.
         }
       }
     }
@@ -65,7 +66,8 @@ function initializeFirebase() {
     clients = { app, auth, db, storage };
   } catch (error) {
     initError = error as Error;
-    console.error('Failed to initialize Firebase client:', initError.message);
+    // The FirebaseConfigChecker component will show a UI error, so this console log is redundant.
+    // console.error('Failed to initialize Firebase client:', initError.message);
   }
 }
 
