@@ -3,82 +3,82 @@ import admin from 'firebase-admin';
 
 // This is a server-only file.
 
-<<<<<<< HEAD
-function loadServiceAccount() {
-  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-
-  if (!rawServiceAccount) {
-    console.error('FIREBASE_SERVICE_ACCOUNT_KEY is not set.');
-    return null;
-  }
-
-  try {
-    const parsed = JSON.parse(rawServiceAccount);
-    if (parsed.private_key) {
-      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
-=======
 let adminApp: admin.app.App | null = null;
 let adminAuth: admin.auth.Auth | null = null;
 let adminDb: admin.firestore.Firestore | null = null;
+let adminInitError: Error | null = null;
 
 function initializeAdminApp() {
   if (admin.apps.length > 0) {
-    adminApp = admin.app();
-  } else {
-    const serviceAccount = loadServiceAccount();
-    if (serviceAccount) {
-      try {
-        adminApp = admin.initializeApp({
-          credential: admin.credential.cert(serviceAccount),
-        });
-      } catch (error: any) {
-        console.error('Firebase Admin initialization error:', error.stack);
-      }
-    } else {
-      console.error(
-        'Firebase Admin credentials not found. Ensure FIREBASE_SERVICE_ACCOUNT_KEY is set in your environment variables.'
-      );
->>>>>>> cd12ddf (then?)
+    if (!adminApp) {
+      adminApp = admin.app();
+      adminAuth = admin.auth(adminApp);
+      adminDb = admin.firestore(adminApp);
     }
-    return parsed;
-  } catch (e) {
-    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY', e);
-    return null;
+    return;
   }
-<<<<<<< HEAD
-=======
 
-  if (adminApp) {
+  const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  if (!rawServiceAccount) {
+    const err =
+      'FIREBASE_SERVICE_ACCOUNT_KEY is not set. Firebase Admin SDK cannot be initialized.';
+    console.error(err);
+    adminInitError = new Error(err);
+    return;
+  }
+
+  try {
+    const serviceAccount = JSON.parse(rawServiceAccount);
+    // The private_key needs to have newlines restored.
+    if (serviceAccount.private_key) {
+      serviceAccount.private_key = serviceAccount.private_key.replace(
+        /\\n/g,
+        '\n'
+      );
+    }
+
+    adminApp = admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+
     adminAuth = admin.auth(adminApp);
     adminDb = admin.firestore(adminApp);
+  } catch (e: any) {
+    const err = 'Failed to parse or initialize Firebase Admin SDK.';
+    console.error(err, e);
+    adminInitError = new Error(err, { cause: e });
   }
 }
 
-function loadServiceAccount() {
-  try {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
-      return JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-    }
-  } catch (e) {
-    console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_KEY:', e);
-  }
-  return null;
->>>>>>> cd12ddf (then?)
-}
-
+// Initialize on module load.
 initializeAdminApp();
 
-export { adminApp, adminAuth, adminDb };
+export function getAdminApp() {
+  if (adminInitError) throw adminInitError;
+  return adminApp;
+}
+
+export function getAdminAuth() {
+  if (adminInitError) throw adminInitError;
+  return adminAuth;
+}
+
+export function getAdminDb() {
+  if (adminInitError) throw adminInitError;
+  return adminDb;
+}
 
 export async function verifyIdToken(idToken: string) {
-  if (!adminAuth) {
+  const auth = getAdminAuth();
+  if (!auth) {
     throw new Error('Firebase Admin Auth not initialized.');
   }
   try {
-    const decodedToken = await adminAuth.verifyIdToken(idToken);
+    const decodedToken = await auth.verifyIdToken(idToken);
     return decodedToken;
   } catch (error) {
     console.error('Error verifying ID token:', error);
-    return null;
+    // Re-throw or handle as a specific unauthorized error
+    throw new Error('Invalid or expired token.');
   }
 }

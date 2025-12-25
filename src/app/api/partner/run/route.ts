@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { suggestNextAction } from '@/ai/flows/ai-suggests-next-action';
-<<<<<<< HEAD
 import { type SuggestNextActionOutput } from '@/ai/schemas';
 import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
-=======
-import type { SuggestNextActionOutput } from '@/ai/schemas';
-import { adminDb, adminAuth } from '@/lib/firebase-admin';
->>>>>>> 8c0a637 (then?)
 import { FieldValue } from 'firebase-admin/firestore';
 
 async function getProjectData(adminDb: FirebaseFirestore.Firestore, orgId: string, projectId: string, threadId: string) {
@@ -77,12 +72,9 @@ async function persistAiOutput(adminDb: FirebaseFirestore.Firestore, orgId: stri
 
 
 export async function POST(req: NextRequest) {
-<<<<<<< HEAD
     const adminDb = getAdminDb();
     const adminAuth = getAdminAuth();
 
-=======
->>>>>>> 8c0a637 (then?)
     if (!adminDb || !adminAuth) {
         return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
     }

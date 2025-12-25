@@ -4,12 +4,9 @@ import { getAdminAuth, getAdminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 
 export async function POST(req: NextRequest) {
-<<<<<<< HEAD
     const adminDb = getAdminDb();
     const adminAuth = getAdminAuth();
 
-=======
->>>>>>> 8c0a637 (then?)
     if (!adminDb || !adminAuth) {
         return NextResponse.json({ error: 'Firebase Admin not configured' }, { status: 500 });
     }
