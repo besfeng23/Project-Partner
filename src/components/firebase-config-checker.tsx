@@ -5,11 +5,6 @@ import { AlertTriangle, Info } from 'lucide-react';
 import { ProjectPartnerIcon } from './icons';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
-<<<<<<< HEAD
-import { useState, useEffect } from 'react';
-=======
-import { Skeleton } from './ui/skeleton';
->>>>>>> 72288cf (Try fixing this error: `Recoverable Error: Hydration failed because the)
 
 const requiredEnvVars = [
   'NEXT_PUBLIC_FIREBASE_API_KEY',
@@ -23,27 +18,9 @@ const requiredEnvVars = [
 export function FirebaseConfigChecker({ children }: { children: ReactNode }) {
   const [missingVars, setMissingVars] = useState<string[]>([]);
   const [isClient, setIsClient] = useState(false);
-<<<<<<< HEAD
-=======
 
   useEffect(() => {
     // This effect runs only on the client, after hydration
-    setIsClient(true);
-    const missing = requiredEnvVars.filter(
-      (varName) => !process.env[varName]
-    );
-    setMissingVars(missing);
-  }, []);
-
-  if (!isClient) {
-    // On the server and during initial client render, render nothing or a loading state
-    // that matches what AuthProvider might render to avoid mismatch.
-    // Returning children assumes AuthProvider will handle loading state.
-    return <>{children}</>;
-  }
->>>>>>> 72288cf (Try fixing this error: `Recoverable Error: Hydration failed because the)
-
-  useEffect(() => {
     setIsClient(true);
     const missing = requiredEnvVars.filter(
       (varName) => !process.env[varName]
